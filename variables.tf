@@ -30,7 +30,7 @@ variable "os" {
 
 variable "aws_master_instance_type" {
   description = "AWS DC/OS master instance type"
-  default = "m3.xlarge"
+  default = "m4.xlarge"
 }
 
 variable "aws_master_instance_disk_size" {
@@ -40,7 +40,7 @@ variable "aws_master_instance_disk_size" {
 
 variable "aws_agent_instance_type" {
   description = "AWS DC/OS Private Agent instance type"
-  default = "m3.xlarge"
+  default = "m4.xlarge"
 }
 
 variable "aws_agent_instance_disk_size" {
@@ -50,7 +50,7 @@ variable "aws_agent_instance_disk_size" {
 
 variable "aws_public_agent_instance_type" {
   description = "AWS DC/OS Public instance type"
-  default = "m3.xlarge"
+  default = "m4.xlarge"
 }
 
 variable "aws_public_agent_instance_disk_size" {
@@ -60,7 +60,7 @@ variable "aws_public_agent_instance_disk_size" {
 
 variable "aws_bootstrap_instance_type" {
   description = "AWS DC/OS Bootstrap instance type"
-  default = "m3.large"
+  default = "m4.xlarge"
 }
 
 variable "aws_bootstrap_instance_disk_size" {

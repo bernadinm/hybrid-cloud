@@ -11,8 +11,8 @@ resource "aws_elb" "internal-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-int-master-elb"
   internal = "true"
 
-  subnets         = ["${aws_subnet.public.id}"]
-  security_groups = ["${aws_security_group.master.id}","${aws_security_group.public_slave.id}", "${aws_security_group.private_slave.id}"]
+  subnets         = ["subnet-8b0403ef"]
+  security_groups = ["sg-b4a946c2"]
   instances       = ["${aws_instance.master.*.id}"]
 
   listener {
@@ -74,8 +74,8 @@ resource "aws_elb_attachment" "public-master-elb" {
 resource "aws_elb" "public-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-mas-elb"
 
-  subnets         = ["${aws_subnet.public.id}"]
-  security_groups = ["${aws_security_group.public_slave.id}"]
+  subnets         = ["subnet-8b0403ef"]
+  security_groups = ["sg-b4a946c2"]
   instances       = ["${aws_instance.master.*.id}"]
 
   listener {
@@ -139,7 +139,7 @@ resource "aws_instance" "master" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # OS init script
   provisioner "file" {
@@ -150,7 +150,7 @@ resource "aws_instance" "master" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = "subnet-8b0403ef"
 
  # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,

@@ -7,23 +7,14 @@ module "dcos-mesos-agent-public" {
   role                 = "dcos-mesos-agent-public"
 }
 
-# Reattach the public ELBs to the agents if they change
-#resource "aws_elb_attachment" "public-agent-elb" {
-#  count    = "${var.num_of_public_agents}"
-#  elb      = "${aws_elb.public-agent-elb.id}"
-#  # instance = "${aws_instance.public-agent.*.id[count.index]}"
-#
-#  instances       = ["${aws_instance.public-agent-group-1.*.id}", "${aws_instance.public-agent-group-2.*.id}", "${aws_instance.public-agent-group-3.*.id}"]
-#}
-
 # Public Agent Load Balancer Access
 # Adminrouter Only
 resource "aws_elb" "public-agent-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-agt-elb"
 
-  subnets         = ["${aws_subnet.public.id}"]
-  security_groups = ["${aws_security_group.public_slave.id}"]
-  instances       = ["${aws_instance.public-agent-group-1.*.id}", "${aws_instance.public-agent-group-2.*.id}", "${aws_instance.public-agent-group-3.*.id}"]
+  subnets         = ["subnet-8b0403ef"]
+  security_groups = ["sg-b4a946c2"]
+  instances       = ["${aws_instance.public-agent-group-1.*.id}"]
 
   listener {
     lb_port           = 80

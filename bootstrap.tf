@@ -30,12 +30,12 @@ resource "aws_instance" "bootstrap" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = "subnet-8b0403ef"
 
   # DCOS ip detect script
   provisioner "file" {

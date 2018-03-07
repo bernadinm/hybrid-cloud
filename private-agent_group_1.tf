@@ -3,21 +3,6 @@ variable "num_of_private_agent_group_1" {
   default = 1
 }
 
-# Remote Private agent instance deploy
-variable "aws_group_1_private_agent_az" { 
-  default = "a"
-}
-
-# Create a subnet to launch slave private node into
-resource "aws_subnet" "default_group_1_private" {
-  
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.8.0/22"
-  map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}${var.aws_group_1_private_agent_az}"
-}
-
-
 # Private agent instance deploy
 resource "aws_instance" "agent_group_1" {
   # The connection block tells our provisioner how to
@@ -52,12 +37,12 @@ resource "aws_instance" "agent_group_1" {
   key_name = "${var.key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.private_slave.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.default_group_1_private.id}"
+  subnet_id = "subnet-8b0403ef"
 
   # OS init script
   provisioner "file" {
@@ -78,7 +63,7 @@ resource "aws_instance" "agent_group_1" {
   lifecycle {
     ignore_changes = ["tags.Name"]
   }
-  availability_zone = "${var.aws_region}${var.aws_group_1_private_agent_az}"
+  availability_zone = "us-east-1b"
 }
 
 # Execute generated script on agent
