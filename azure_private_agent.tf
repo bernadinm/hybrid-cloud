@@ -1,5 +1,5 @@
 variable "num_of_private_agents" {
-  default = "1"
+  default = "2"
 }
 
 variable "azure_admin_username" {
@@ -27,7 +27,7 @@ resource "azurerm_managed_disk" "agent_managed_disk" {
   count                = "${var.num_of_private_agents}"
   name                 = "hybrid-cloud-agent-${count.index + 1}"
   resource_group_name  = "hybrid-demo"
-  location             = "UK South"
+  location             = "${var.azure_region}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
@@ -37,17 +37,17 @@ resource "azurerm_managed_disk" "agent_managed_disk" {
 resource "azurerm_public_ip" "agent_public_ip" {
   count                        = "${var.num_of_private_agents}"
   name                         = "hybrid-cloud-agent-pub-ip-${count.index + 1}"
-  resource_group_name  = "hybrid-demo"
-  location             = "UK South"
+  resource_group_name          = "hybrid-demo"
+  location                     = "${var.azure_region}"
   public_ip_address_allocation = "dynamic"
-  domain_name_label = "hybrid-cloud-agent-${count.index + 1}"
+  domain_name_label            = "hybrid-cloud-agent-${count.index + 1}"
 }
 
 # Agent Security Groups for NICs
 resource "azurerm_network_security_group" "agent_security_group" {
     name = "hybrid-cloud-agent-security-group"
-    resource_group_name  = "hybrid-demo"
-    location             = "UK South"
+    resource_group_name         = "hybrid-demo"
+    location                    = "${var.azure_region}"
 }
 
 resource "azurerm_network_security_rule" "agent-sshRule" {
@@ -60,7 +60,7 @@ resource "azurerm_network_security_rule" "agent-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -75,7 +75,7 @@ resource "azurerm_network_security_rule" "agent-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -89,7 +89,7 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 # End of Agent NIC Security Group
@@ -97,8 +97,8 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
 # Agent NICs with Security Group
 resource "azurerm_network_interface" "agent_nic" {
   name                      = "hybrid-cloud-private-agent-${count.index}-nic"
-  resource_group_name  = "hybrid-demo"
-  location             = "UK South"
+  resource_group_name       = "hybrid-demo"
+  location                  = "${var.azure_region}"
   network_security_group_id = "${azurerm_network_security_group.agent_security_group.id}"
   count                     = "${var.num_of_private_agents}"
 
@@ -113,8 +113,8 @@ resource "azurerm_network_interface" "agent_nic" {
 # Create an availability set
 resource "azurerm_availability_set" "agent_av_set" {
   name                         = "hybrid-cloud-agent-avset"
-  resource_group_name  = "hybrid-demo"
-  location             = "UK South"
+  resource_group_name          = "hybrid-demo"
+  location                     = "${var.azure_region}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 1
   managed                      = true
@@ -123,8 +123,8 @@ resource "azurerm_availability_set" "agent_av_set" {
 # Agent VM Coniguration
 resource "azurerm_virtual_machine" "agent" {
     name                             = "hybrid-cloud-agent-${count.index + 1}"
-    resource_group_name  = "hybrid-demo"
-    location             = "UK South"
+    resource_group_name              = "hybrid-demo"
+    location                         = "${var.azure_region}"
     network_interface_ids            = ["${azurerm_network_interface.agent_nic.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.agent_av_set.id}"
     vm_size                          = "${var.azure_agent_instance_type}"
@@ -196,12 +196,12 @@ resource "azurerm_virtual_machine" "agent" {
  }
 }
 
-resource "null_resource" "agent" {
+resource "null_resource" "azure-agent" {
   # If state is set to none do not install DC/OS
   count = "${var.state == "none" ? 0 : var.num_of_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${null_resource.bootstrap.id}"
+    cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
     current_virtual_machine_id = "${azurerm_virtual_machine.agent.*.id[count.index]}"
   }
   # Bootstrap script can run on any instance of the cluster
@@ -215,14 +215,14 @@ resource "null_resource" "agent" {
 
   # Generate and upload Agent script to node
   provisioner "file" {
-    content     = "${module.dcos-mesos-agent.script}"
+    content     = "${module.azure-dcos-mesos-agent.script}"
     destination = "run.sh"
   }
 
   # Wait for bootstrapnode to be ready
   provisioner "remote-exec" {
     inline = [
-     "until $(curl --output /dev/null --silent --head --fail http://${aws_instance.bootstrap.private_ip}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
+     "until $(curl --output /dev/null --silent --head --fail http://${azurerm_network_interface.bootstrap_nic.private_ip_address}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
     ]
   }
 
@@ -231,6 +231,14 @@ resource "null_resource" "agent" {
     inline = [
       "sudo chmod +x run.sh",
       "sudo ./run.sh",
+    ]
+  }
+
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
     ]
   }
 }

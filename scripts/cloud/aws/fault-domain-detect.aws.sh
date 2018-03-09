@@ -35,7 +35,7 @@ function azure() {
       exit 1
     fi
 
-    echo "{\"fault_domain\":{\"region\":{\"name\": \"azure/$REGION\"},\"zone\":{\"name\": \"azure/$FAULT_DOMAIN\"}}}"
+    echo "{\"fault_domain\":{\"region\":{\"name\": \"azure/$REGION\"},\"zone\":{\"name\": \"azure/$REGION-$FAULT_DOMAIN\"}}}"
 }
 
 function gcp() {

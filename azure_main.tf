@@ -6,14 +6,6 @@
       region   = "${var.azure_region}"
 }
 
-resource "azurerm_storage_account" "dcos-exhibitor-account" {
-  name                     = "tfexhibitor"
-  resource_group_name      = "hybrid-demo"
-  location                 = "UK South"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 # Public Subnet Security Groups
 resource "azurerm_network_security_group" "public_subnet_security_group" {
     name = "${data.template_file.cluster-name.rendered}-master-security-group"

@@ -1,47 +1,193 @@
-# Deploy the bootstrap instance
-resource "aws_instance" "bootstrap" {
-  # The connection block tells our provisioner how to
-  # communicate with the resource (instance)
-  connection {
-    # The default username for our AMI
-    user = "${module.aws-tested-oses.user}"
+variable "azure_bootstrap_instance_type" {
+  description = "Azure DC/OS Bootstrap instance type"
+  default = "Standard_DS1_v2"
+}
 
-    # The connection will use the local SSH agent for authentication.
-  }
+# Bootstrap Node
+resource "azurerm_managed_disk" "bootstrap_managed_disk" {
+  name                 = "${data.template_file.cluster-name.rendered}-bootstrap"
+  location             = "${var.azure_region}"
+  resource_group_name  = "hybrid-demo"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "${var.instance_disk_size}"
+}
 
-  root_block_device {
-    volume_size = "${var.aws_bootstrap_instance_disk_size}"
-  }
-
-  instance_type = "${var.aws_bootstrap_instance_type}"
+# Public IP addresses for the Public Front End load Balancer
+resource "azurerm_public_ip" "bootstrap_public_ip" {
+  name                         = "${data.template_file.cluster-name.rendered}-bootstrap-pub-ip"
+  location                     = "${var.azure_region}"
+  resource_group_name  = "hybrid-demo"
+  public_ip_address_allocation = "dynamic"
+  domain_name_label = "${data.template_file.cluster-name.rendered}-bootstrap"
 
   tags {
-   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
-   Name = "${data.template_file.cluster-name.rendered}-bootstrap"
-   cluster = "${data.template_file.cluster-name.rendered}"
+  }
+}
+
+# Bootstrap Security Groups for NICs
+resource "azurerm_network_security_group" "bootstrap_security_group" {
+    name = "${data.template_file.cluster-name.rendered}-bootstrap-security-group"
+    location = "${var.azure_region}"
+    resource_group_name  = "hybrid-demo"
+
+    tags {
+      Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+      expiration = "${var.expiration}"
+  }
+}
+
+resource "azurerm_network_security_rule" "bootstrap-sshRule" {
+    name                        = "sshRule"
+    priority                    = 100
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "22"
+    source_address_prefix       = "*"
+    destination_address_prefix  = "*"
+    resource_group_name  = "hybrid-demo"
+    network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
+}
+
+
+resource "azurerm_network_security_rule" "bootstrap-httpRule" {
+    name                        = "HTTP"
+    priority                    = 110
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "80"
+    source_address_prefix       = "*"
+    destination_address_prefix  = "*"
+    resource_group_name  = "hybrid-demo"
+    network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
+}
+
+resource "azurerm_network_security_rule" "bootstrap-httpsRule" {
+    name                        = "HTTPS"
+    priority                    = 120
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "443"
+    source_address_prefix       = "*"
+    destination_address_prefix  = "*"
+    resource_group_name  = "hybrid-demo"
+    network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
+}
+
+resource "azurerm_network_security_rule" "bootstrap-internalEverything" {
+    name                        = "allOtherInternalTraffric"
+    priority                    = 160
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "*"
+    source_address_prefix       = "VirtualNetwork"
+    destination_address_prefix  = "*"
+    resource_group_name  = "hybrid-demo"
+    network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
+}
+
+resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
+    name                        = "allOtherTrafficOutboundRule"
+    priority                    = 170
+    direction                   = "Outbound"
+    access                      = "Allow"
+    protocol                    = "Tcp"
+    source_port_range           = "*"
+    destination_port_range      = "*"
+    source_address_prefix       = "*"
+    destination_address_prefix  = "*"
+    resource_group_name  = "hybrid-demo"
+    network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
+}
+
+# End of Bootstrap NIC Security Group
+
+# Bootstrap NICs with Security Group
+resource "azurerm_network_interface" "bootstrap_nic" {
+  name                      = "${data.template_file.cluster-name.rendered}-bootstrap-nic"
+  location                  = "${var.azure_region}"
+  resource_group_name  = "hybrid-demo"
+  network_security_group_id = "${azurerm_network_security_group.bootstrap_security_group.id}"
+
+  ip_configuration {
+   name                                    = "${data.template_file.cluster-name.rendered}-bootstrap-ipConfig"
+   subnet_id                               = "/subscriptions/6bfddfe6-078b-4a9d-86ff-52e86464efe0/resourceGroups/hybrid-demo/providers/Microsoft.Network/virtualNetworks/hybridvnet/subnets/hybrid-csr-private"
+   private_ip_address_allocation           = "dynamic"
+   public_ip_address_id                    = "${azurerm_public_ip.bootstrap_public_ip.id}"
   }
 
-  # Lookup the correct AMI based on the region
-  # we specified
-  ami = "${module.aws-tested-oses.aws_ami}"
+  tags {
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
+  }
+}
 
-  # The name of our SSH keypair we created above.
-  key_name = "${var.key_name}"
+# Bootstrap VM Coniguration
+resource "azurerm_virtual_machine" "bootstrap" {
+    name                             = "${data.template_file.cluster-name.rendered}-bootstrap"
+    location                         = "${var.azure_region}"
+    resource_group_name  = "hybrid-demo"
+    network_interface_ids            = ["${azurerm_network_interface.bootstrap_nic.id}"]
+    vm_size                          = "${var.azure_bootstrap_instance_type}"
+    delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
 
-  # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["sg-b4a946c2"]
+  storage_image_reference {
+    publisher = "${module.azure-tested-oses.azure_publisher}"
+    offer     = "${module.azure-tested-oses.azure_offer}"
+    sku       = "${module.azure-tested-oses.azure_sku}"
+    version   = "${module.azure-tested-oses.azure_version}"
+  }
 
-  # We're going to launch into the same subnet as our ELB. In a production
-  # environment it's more common to have a separate private subnet for
-  # backend instances.
-  subnet_id = "subnet-8b0403ef"
+  storage_os_disk {
+    name              = "os-disk-bootstrap"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_data_disk {
+    name            = "${azurerm_managed_disk.bootstrap_managed_disk.name}"
+    managed_disk_id = "${azurerm_managed_disk.bootstrap_managed_disk.id}"
+    create_option   = "Attach"
+    lun             = 0
+    disk_size_gb    = "${azurerm_managed_disk.bootstrap_managed_disk.disk_size_gb}"
+  }
+
+  os_profile {
+    computer_name  = "bootstrap"
+    admin_username = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+    ssh_keys {
+        path     = "/home/${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}/.ssh/authorized_keys"
+        key_data = "${var.ssh_pub_key}"
+    }
+  }
 
   # OS init script
   provisioner "file" {
-   content = "${module.aws-tested-oses.os-setup}"
+   content = "${module.azure-tested-oses.os-setup}"
    destination = "/tmp/os-setup.sh"
-   }
+
+   connection {
+    type = "ssh"
+    user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+    host = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+    }
+ }
 
  # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -51,18 +197,24 @@ resource "aws_instance" "bootstrap" {
       "sudo chmod +x /tmp/os-setup.sh",
       "sudo bash /tmp/os-setup.sh",
     ]
-  }
 
-  lifecycle {
-    ignore_changes = ["tags.Name"]
-  }
+   connection {
+    type = "ssh"
+    user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+    host = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+   }
+ }
+
+  tags {
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
+ }
 }
 
-
-# Create DCOS Mesos Master Scripts to execute
-  module "dcos-bootstrap" {
+# Create DCOS Mesos Bootstrap Scripts to execute
+  module "azure-dcos-bootstrap" {
     source = "git@github.com:amitaekbote/terraform-dcos-enterprise//tf_dcos_core?ref=addnode"
-    bootstrap_private_ip = "${aws_instance.bootstrap.private_ip}"
+    bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
     dcos_install_mode = "${var.state}"
     dcos_version = "${var.dcos_version}"
     role = "dcos-bootstrap"
@@ -136,7 +288,9 @@ resource "aws_instance" "bootstrap" {
     dcos_package_storage_uri = "${var.dcos_package_storage_uri}"
  }
 
-resource "null_resource" "bootstrap" {
+resource "null_resource" "azure-bootstrap" {
+  # If state is set to none do not install DC/OS
+  count = "${var.state == "none" ? 0 : 1}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${aws_instance.bootstrap.id}"
@@ -211,28 +365,34 @@ resource "null_resource" "bootstrap" {
     dcos_package_storage_uri = "${var.dcos_package_storage_uri}"
   }
 
+  # Bootstrap script can run on any instance of the cluster
+  # So we just choose the first in this case
+  connection {
+    host = "${element(azurerm_public_ip.bootstrap_public_ip.*.fqdn, 0)}"
+    user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+  }
+
+  # DCOS fault domain detect script
+  provisioner "file" {
+   source = "${var.dcos_fault_domain_detect_filename}"
+   destination = "/tmp/fault-domain-detect"
+
+   connection {
+    type = "ssh"
+    user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+    host = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+    }
+   }
+
   # DCOS ip detect script
   provisioner "file" {
    source = "${var.ip-detect["aws"]}"
    destination = "/tmp/ip-detect"
    }
 
-  # DCOS fault domain detect script
-  provisioner "file" {
-   source = "${var.dcos_fault_domain_detect_filename}"
-   destination = "/tmp/fault-domain-detect"
-   }
-
-  # Bootstrap script can run on any instance of the cluster
-  # So we just choose the first in this case
-  connection {
-    host = "${element(aws_instance.bootstrap.*.public_ip, 0)}"
-    user = "${module.aws-tested-oses.user}"
-  }
-
   # Generate and upload bootstrap script to node
   provisioner "file" {
-    content     = "${module.dcos-bootstrap.script}"
+    content     = "${module.azure-dcos-bootstrap.script}"
     destination = "run.sh"
   }
 
@@ -247,8 +407,4 @@ resource "null_resource" "bootstrap" {
   lifecycle {
     ignore_changes = ["data.template_file.cluster-name.rendered"]
   }
-}
-
-output "Bootstrap Public IP Address" {
-  value = "${aws_instance.bootstrap.public_ip}"
 }

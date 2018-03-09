@@ -102,8 +102,14 @@ resource "null_resource" "agent_group_1" {
       "sudo ./run.sh",
     ]
   }
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+    ]
+  }
 }
-
 #output "Private Agent Public IP Address" {
 #  value = ["${aws_instance.agent_group_1.*.public_ip}"]
 #}
