@@ -1,5 +1,5 @@
-variable "key_name" {
-  description = "Key name assicated with your instances for login"
+variable "ssh_key_name" {
+  description = "ssh key name associated with your instances for login"
   default = "default"
 }
 
@@ -30,7 +30,7 @@ variable "os" {
 
 variable "aws_master_instance_type" {
   description = "AWS DC/OS master instance type"
-  default = "m4.xlarge"
+  default = "m3.xlarge"
 }
 
 variable "aws_master_instance_disk_size" {
@@ -40,7 +40,7 @@ variable "aws_master_instance_disk_size" {
 
 variable "aws_agent_instance_type" {
   description = "AWS DC/OS Private Agent instance type"
-  default = "m4.xlarge"
+  default = "m3.xlarge"
 }
 
 variable "aws_agent_instance_disk_size" {
@@ -50,7 +50,7 @@ variable "aws_agent_instance_disk_size" {
 
 variable "aws_public_agent_instance_type" {
   description = "AWS DC/OS Public instance type"
-  default = "m4.xlarge"
+  default = "m3.xlarge"
 }
 
 variable "aws_public_agent_instance_disk_size" {
@@ -60,12 +60,17 @@ variable "aws_public_agent_instance_disk_size" {
 
 variable "aws_bootstrap_instance_type" {
   description = "AWS DC/OS Bootstrap instance type"
-  default = "m4.xlarge"
+  default = "m3.large"
 }
 
 variable "aws_bootstrap_instance_disk_size" {
   description = "AWS DC/OS bootstrap instance type default size of the root disk (GB)"
   default = "60"
+}
+
+variable "num_of_private_agents" {
+  description = "DC/OS Private Agents Count"
+  default = 2
 }
 
 variable "num_of_public_agents" {
@@ -76,15 +81,6 @@ variable "num_of_public_agents" {
 variable "num_of_masters" {
   description = "DC/OS Master Nodes Count (Odd only)"
   default = 3
-}
-
-variable "fault-domain-detect" {
- description = "Used to determine the fault domain of instances"
- type = "map"
-
- default = {
-  aws = "scripts/cloud/aws/fault-domain-detect.aws.sh"
- }
 }
 
 variable "owner" {
@@ -104,6 +100,10 @@ variable "ip-detect" {
  default = {
   aws = "scripts/cloud/aws/ip-detect.aws.sh"
  }
+}
+
+variable "dcos_fault_domain_detect_filename" {
+ default = "scripts/cloud/aws/fault-domain-detect"
 }
 
 variable "os-init-script" {
@@ -137,13 +137,18 @@ variable "dcos_security" {
 }
 
 variable "dcos_resolvers" {
- default = [ "8.8.8.8", "8.8.4.4" ]
- description = "DNS Resolver for external name resolution"
+ default = [ "169.254.169.253" ]
+ description = "DNS Resolver for internal name resolution. Points to Amazon DNS server which can resolve external addresses."
 }
 
 variable "dcos_oauth_enabled" {
  default = ""
  description = "DC/OS Open Flag for Open Auth"
+}
+
+variable "dcos_master_external_loadbalancer" {
+ default = ""
+ description = "Used to allow DC/OS to set any required certs. Used for DC/OS EE."
 }
 
 variable "dcos_master_discovery" {
@@ -291,6 +296,11 @@ variable "dcos_cluster_name" {
  description = "Name of the DC/OS Cluster"
 }
 
+variable "dcos_license_key_contents" {
+ default = ""
+ description = "Used to privide the license key of DC/OS for Enterprise Edition"
+}
+
 variable "dcos_superuser_username" {
  default = ""
  description = "This required parameter specifies the Admin username. (EE only)"
@@ -405,13 +415,8 @@ variable "dcos_previous_version" {
 }
 
 variable "dcos_version" {
- default = "1.11-dev"
+ default = "1.10.2"
  description = "DCOS Version"
-}
-
-variable "dcos-type" {
- default = "open"
- description = "DCOS type, either ee or open."
 }
 
 variable "dcos_cluster_docker_credentials" {
@@ -454,10 +459,6 @@ variable "dcos_staged_package_storage_uri" {
  description = "This parameter specifies where to temporarily store DC/OS packages while they are being added. The value must be a file URL, for example, file:///var/lib/dcos/cosmos/staged-packages."
 }
 
-variable "dcos_fault_domain_detect_filename" {
- default = "scripts/cloud/aws/fault-domain-detect.aws.sh"
-}
-
 variable "dcos_package_storage_uri" {
  default = ""
  description = "This parameter specifies where to permanently store DC/OS packages. The value must be a file URL, for example, file:///var/lib/dcos/cosmos/packages."
@@ -481,12 +482,7 @@ variable "dcos_ip_detect_public_contents" {
  description = "Used for AWS to determine the public IP. DC/OS bug requires this variable instead of a file see https://jira.mesosphere.com/browse/DCOS_OSS-905 for more information."
 }
 
-# Core OS
-variable "aws_amis" {
-  default = {
-    eu-west-1 = "ami-163e7e65"
-    us-east-1 = "ami-21732036"
-    us-west-1 = "ami-161a5176"
-    us-west-2 = "ami-078d5367"
-  }
+variable "kubernetes_cluster" {
+ default = "kubernetes-cluster"
+ description = "Kubernetes cluster tag"
 }

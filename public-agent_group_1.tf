@@ -33,7 +33,7 @@ resource "aws_instance" "public-agent-group-1" {
   ami = "${module.aws-tested-oses.aws_ami}"
 
   # The name of our SSH keypair we created above.
-  key_name = "${var.key_name}"
+  key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
   vpc_security_group_ids = ["sg-b4a946c2"]

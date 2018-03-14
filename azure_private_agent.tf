@@ -1,5 +1,5 @@
-variable "num_of_private_agents" {
-  default = "2"
+variable "num_of_azure_private_agents" {
+  default = "3"
 }
 
 variable "azure_admin_username" {
@@ -24,7 +24,7 @@ variable "ssh_pub_key" {
 
 # Private Agents
 resource "azurerm_managed_disk" "agent_managed_disk" {
-  count                = "${var.num_of_private_agents}"
+  count                = "${var.num_of_azure_private_agents}"
   name                 = "hybrid-cloud-agent-${count.index + 1}"
   resource_group_name  = "hybrid-demo"
   location             = "${var.azure_region}"
@@ -35,7 +35,7 @@ resource "azurerm_managed_disk" "agent_managed_disk" {
 
 # Public IP addresses
 resource "azurerm_public_ip" "agent_public_ip" {
-  count                        = "${var.num_of_private_agents}"
+  count                        = "${var.num_of_azure_private_agents}"
   name                         = "hybrid-cloud-agent-pub-ip-${count.index + 1}"
   resource_group_name          = "hybrid-demo"
   location                     = "${var.azure_region}"
@@ -100,7 +100,7 @@ resource "azurerm_network_interface" "agent_nic" {
   resource_group_name       = "hybrid-demo"
   location                  = "${var.azure_region}"
   network_security_group_id = "${azurerm_network_security_group.agent_security_group.id}"
-  count                     = "${var.num_of_private_agents}"
+  count                     = "${var.num_of_azure_private_agents}"
 
   ip_configuration {
    name                                    = "hybrid-cloud-${count.index}-ipConfig"
@@ -128,7 +128,7 @@ resource "azurerm_virtual_machine" "agent" {
     network_interface_ids            = ["${azurerm_network_interface.agent_nic.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.agent_av_set.id}"
     vm_size                          = "${var.azure_agent_instance_type}"
-    count                            = "${var.num_of_private_agents}"
+    count                            = "${var.num_of_azure_private_agents}"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
 
@@ -198,7 +198,7 @@ resource "azurerm_virtual_machine" "agent" {
 
 resource "null_resource" "azure-agent" {
   # If state is set to none do not install DC/OS
-  count = "${var.state == "none" ? 0 : var.num_of_private_agents}"
+  count = "${var.state == "none" ? 0 : var.num_of_azure_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
@@ -211,7 +211,7 @@ resource "null_resource" "azure-agent" {
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
   }
 
-  count = "${var.num_of_private_agents}"
+  count = "${var.num_of_azure_private_agents}"
 
   # Generate and upload Agent script to node
   provisioner "file" {

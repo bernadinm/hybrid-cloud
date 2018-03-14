@@ -1,6 +1,6 @@
 variable "num_of_private_agent_group_1" {
   description = "DC/OS Private Agents Count"
-  default = 1
+  default = 3
 }
 
 # Private agent instance deploy
@@ -34,7 +34,7 @@ resource "aws_instance" "agent_group_1" {
   ami = "${module.aws-tested-oses.aws_ami}"
 
   # The name of our SSH keypair we created above.
-  key_name = "${var.key_name}"
+  key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
   vpc_security_group_ids = ["sg-b4a946c2"]

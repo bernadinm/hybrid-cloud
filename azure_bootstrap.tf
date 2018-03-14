@@ -213,13 +213,16 @@ resource "azurerm_virtual_machine" "bootstrap" {
 
 # Create DCOS Mesos Bootstrap Scripts to execute
   module "azure-dcos-bootstrap" {
-    source = "git@github.com:amitaekbote/terraform-dcos-enterprise//tf_dcos_core?ref=addnode"
+    source = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
     bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
-    dcos_install_mode = "${var.state}"
+    # Only allow upgrade and install as installation mode
+    dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
     dcos_version = "${var.dcos_version}"
     role = "dcos-bootstrap"
     dcos_bootstrap_port = "${var.custom_dcos_bootstrap_port}"
     custom_dcos_download_path = "${var.custom_dcos_download_path}"
+    # TODO(bernadinm) Terraform Bug: 9488.  Templates will not accept list, but only strings.
+    # Workaround is to flatten the list as a string below. Fix when this is closed.
     dcos_audit_logging = "${var.dcos_audit_logging}"
     dcos_auth_cookie_secure_flag = "${var.dcos_auth_cookie_secure_flag}"
     dcos_aws_access_key_id = "${var.dcos_aws_access_key_id}"
@@ -249,10 +252,12 @@ resource "azurerm_virtual_machine" "bootstrap" {
     dcos_exhibitor_storage_backend = "${var.dcos_exhibitor_storage_backend}"
     dcos_exhibitor_zk_hosts = "${var.dcos_exhibitor_zk_hosts}"
     dcos_exhibitor_zk_path = "${var.dcos_exhibitor_zk_path}"
+    dcos_license_key_contents= "${var.dcos_license_key_contents}"
     dcos_gc_delay = "${var.dcos_gc_delay}"
     dcos_http_proxy = "${var.dcos_http_proxy}"
     dcos_https_proxy = "${var.dcos_https_proxy}"
     dcos_log_directory = "${var.dcos_log_directory}"
+    dcos_master_external_loadbalancer = "${coalesce(var.dcos_master_external_loadbalancer, aws_elb.public-master-elb.dns_name)}"
     dcos_master_discovery = "${var.dcos_master_discovery}"
     dcos_master_dns_bindall = "${var.dcos_master_dns_bindall}"
     # TODO(bernadinm) Terraform Bug: 9488.  Templates will not accept list, but only strings.
@@ -267,6 +272,8 @@ resource "azurerm_virtual_machine" "bootstrap" {
     dcos_overlay_network = "${var.dcos_overlay_network}"
     dcos_process_timeout = "${var.dcos_process_timeout}"
     dcos_previous_version = "${var.dcos_previous_version}"
+    # TODO(bernadinm) Terraform Bug: 9488.  Templates will not accept list, but only strings.
+    # Workaround is to flatten the list as a string below. Fix when this is closed.
     dcos_resolvers  = "\n - ${join("\n - ", var.dcos_resolvers)}"
     dcos_rexray_config_filename = "${var.dcos_rexray_config_filename}"
     dcos_rexray_config_method = "${var.dcos_rexray_config_method}"
@@ -314,6 +321,7 @@ resource "null_resource" "azure-bootstrap" {
     dcos_cluster_docker_credentials_dcos_owned = "${var.dcos_cluster_docker_credentials_dcos_owned}"
     dcos_cluster_docker_credentials_enabled = "${var.dcos_cluster_docker_credentials_enabled}"
     dcos_cluster_docker_credentials_write_to_etc = "${var.dcos_cluster_docker_credentials_write_to_etc}"
+    dcos_cluster_name  = "${coalesce(var.dcos_cluster_name, data.template_file.cluster-name.rendered)}"
     dcos_customer_key = "${var.dcos_customer_key}"
     dcos_dns_search = "${var.dcos_dns_search}"
     dcos_docker_remove_delay = "${var.dcos_docker_remove_delay}"
@@ -325,10 +333,12 @@ resource "null_resource" "azure-bootstrap" {
     dcos_exhibitor_storage_backend = "${var.dcos_exhibitor_storage_backend}"
     dcos_exhibitor_zk_hosts = "${var.dcos_exhibitor_zk_hosts}"
     dcos_exhibitor_zk_path = "${var.dcos_exhibitor_zk_path}"
+    dcos_license_key_contents= "${var.dcos_license_key_contents}"
     dcos_gc_delay = "${var.dcos_gc_delay}"
     dcos_http_proxy = "${var.dcos_http_proxy}"
     dcos_https_proxy = "${var.dcos_https_proxy}"
     dcos_log_directory = "${var.dcos_log_directory}"
+    dcos_master_external_loadbalancer = "${coalesce(var.dcos_master_external_loadbalancer, aws_elb.public-master-elb.dns_name)}"
     dcos_master_discovery = "${var.dcos_master_discovery}"
     dcos_master_dns_bindall = "${var.dcos_master_dns_bindall}"
     # TODO(bernadinm) Terraform Bug: 9488.  Templates will not accept list, but only strings.
