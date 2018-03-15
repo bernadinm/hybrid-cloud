@@ -137,7 +137,7 @@ variable "dcos_security" {
 }
 
 variable "dcos_resolvers" {
- default = [ "169.254.169.253" ]
+ default = [ "169.254.169.253", "168.63.129.16" ]
  description = "DNS Resolver for internal name resolution. Points to Amazon DNS server which can resolve external addresses."
 }
 

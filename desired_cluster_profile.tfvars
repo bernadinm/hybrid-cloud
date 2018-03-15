@@ -29,6 +29,5 @@ aws_group_3_remote_agent_az = "c"
 num_of_remote_private_agents_group_1 = "0"
 num_of_remote_private_agents_group_2 = "0"
 num_of_remote_private_agents_group_3 = "0"
-dcos_resolvers = ["8.8.8.8", "8.8.4.4"]
 dcos_security = "permissive"
 dcos_license_key_contents = "<ADD_LICENSE_HERE>"
