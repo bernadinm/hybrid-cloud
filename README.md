@@ -1,11 +1,12 @@
-# Multi-Region Open DC/OS on AWS with Terraform
+# Multi-Cloud Open DC/OS on AWS with Terraform
+# AWS and Azure
 
 Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
 
-## Deploying Multi-Region DCOS 
+## Deploying Multi-Cloud DCOS 
 
 This repository is meant to get the bare minimum of running a multi-region DC/OS cluster. It is not as modifiable as dcos/terraform-dcos so please keep this in mind. 
 
@@ -16,7 +17,7 @@ This repo is configured to deploy on us-east-1 and us-west-2 with an AWS VPC Pee
 
 ```bash
 mkdir terraform-demo && cd terraform-demo
-terraform init -from-module github.com/bernadinm/terraform-openvpn//multi-region-aws
+terraform init -from-module github.com/bernadinm/hybrid-cloud
 terraform apply -var-file desired_cluster_profile.tfvars
 ```
 
