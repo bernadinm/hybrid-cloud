@@ -11,10 +11,11 @@ data "external" "whoami" {
 
 # Allow overrides of the owner variable or default to whoami.sh
 data "template_file" "cluster-name" {
- template = "$${username}"
+ template = "$${username}-tf$${uuid}"
 
   vars {
     username = "${format("%.10s", coalesce(var.owner, data.external.whoami.result["owner"]))}"
+    uuid     = "${substr(md5(random_id.cluster.id),0,4)}"
   }
 }
 
@@ -35,4 +36,14 @@ resource "aws_s3_bucket" "dcos_bucket" {
       source   = "./modules/dcos-tested-aws-oses"
       os       = "${var.os}"
       region   = "${var.aws_region}"
+}
+
+# Privdes a unique ID thoughout the livespan of the cluster
+resource "random_id" "cluster" {
+  keepers = {
+    # Generate a new id each time we switch to a new AMI id
+    id = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+  }
+
+  byte_length = 8
 }

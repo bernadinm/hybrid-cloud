@@ -150,7 +150,7 @@ resource "azurerm_virtual_machine" "bootstrap" {
   }
 
   storage_os_disk {
-    name              = "os-disk-bootstrap"
+    name              = "${data.template_file.cluster-name.rendered}-os-disk-bootstrap"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"

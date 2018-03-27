@@ -14,7 +14,7 @@ resource "aws_elb" "public-agent-elb" {
 
   subnets         = ["subnet-8b0403ef"]
   security_groups = ["sg-b4a946c2"]
-  instances       = ["${aws_instance.public-agent-group-1.*.id}"]
+  instances       = ["${aws_instance.public-agent-group-1.*.id}", "${aws_instance.public-agent-group-2.*.id}", "${aws_instance.public-agent-group-3.*.id}"]
 
   listener {
     lb_port           = 80

@@ -1,63 +1,51 @@
-# Remote Private agent instance deploy
-variable "aws_group_2_remote_agent_az" { 
-  default = "b"
+variable "num_of_public_agent_group_3" {
+  description = "DC/OS Private Agents Count"
+  default = 1
 }
 
-variable "num_of_remote_private_agents_group_2" {
-  default = "1"
-}
-
-# Create a subnet to launch slave private node into
-resource "aws_subnet" "group_2_private" {
-  provider = "aws.bursted-vpc"
-  vpc_id                  = "${aws_vpc.bursted_region.id}"
-  cidr_block              = "10.128.12.0/22"
-  map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_remote_region}${var.aws_group_2_remote_agent_az}"
-}
-
-resource "aws_instance" "group_2_remote_agent" {
-  provider = "aws.bursted-vpc"
+resource "aws_instance" "public-agent-group-3" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    user = "${module.aws-tested-oses-bursted.user}"
+    user = "${module.aws-tested-oses.user}"
 
     # The connection will use the local SSH agent for authentication.
   }
 
   root_block_device {
-    volume_size = "${var.instance_disk_size}"
+    volume_size = "${var.aws_public_agent_instance_disk_size}"
   }
 
-  count = "${var.num_of_remote_private_agents_group_2}"
-  instance_type = "${var.aws_agent_instance_type}"
+  count = "${var.num_of_public_agents}"
+  instance_type = "${var.aws_public_agent_instance_type}"
+
+  # ebs_optimized = "true" # Not supported for all configurations
 
   tags {
    owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
-   Name =  "${data.template_file.cluster-name.rendered}-remote-pvtagt-${count.index + 1}"
+   Name =  "${data.template_file.cluster-name.rendered}-pubagt-${count.index + 1}"
    cluster = "${data.template_file.cluster-name.rendered}"
   }
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${module.aws-tested-oses-bursted.aws_ami}"
+  ami = "${module.aws-tested-oses.aws_ami}"
 
   # The name of our SSH keypair we created above.
-  key_name = "${var.key_name}"
+  key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.group_private_slave.id}","${aws_security_group.group_admin.id}","${aws_security_group.group_any_access_internal.id}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.group_2_private.id}"
+  subnet_id = "subnet-8b0403ef"
 
   # OS init script
   provisioner "file" {
-   content = "${module.aws-tested-oses-bursted.os-setup}"
+   content = "${module.aws-tested-oses.os-setup}"
    destination = "/tmp/os-setup.sh"
    }
 
@@ -74,28 +62,29 @@ resource "aws_instance" "group_2_remote_agent" {
   lifecycle {
     ignore_changes = ["tags.Name"]
   }
-  availability_zone = "${var.aws_remote_region}${var.aws_group_2_remote_agent_az}"
+  availability_zone = "us-east-1b"
 }
 
 # Execute generated script on agent
-resource "null_resource" "group_2_remote_agent" {
+resource "null_resource" "public-agent-group-3" {
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.bootstrap.id}"
-    current_ec2_instance_id = "${aws_instance.group_2_remote_agent.*.id[count.index]}"
+    current_ec2_instance_id = "${aws_instance.public-agent-group-3.*.id[count.index]}"
   }
+
   # Bootstrap script can run on any instance of the cluster
   # So we just choose the first in this case
   connection {
-    host = "${element(aws_instance.group_2_remote_agent.*.public_ip, count.index)}"
-    user = "${module.aws-tested-oses-bursted.user}"
+    host = "${element(aws_instance.public-agent-group-3.*.public_ip, count.index)}"
+    user = "${module.aws-tested-oses.user}"
   }
 
-  count = "${var.num_of_remote_private_agents_group_2}"
+  count = "${var.num_of_public_agents}"
 
   # Generate and upload Agent script to node
   provisioner "file" {
-    content     = "${module.dcos-remote-mesos-agent.script}"
+    content     = "${module.dcos-mesos-agent-public.script}"
     destination = "run.sh"
   }
 
@@ -113,9 +102,16 @@ resource "null_resource" "group_2_remote_agent" {
       "sudo ./run.sh",
     ]
   }
- depends_on = ["aws_vpc_peering_connection_accepter.peer"]
-}
 
-#output "Remote Private Agent Public IP Address" {
-#  value = "${join(", ", aws_instance.group_2_remote_agent.*.public_ip)}"
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+    ]
+  }
+
+}
+#output "Public Agent Public IP Address" {
+#  value = ["${aws_instance.public-agent-group-3.*.public_ip}"]
 #}

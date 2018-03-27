@@ -140,7 +140,7 @@ resource "azurerm_virtual_machine" "agent" {
   }
 
   storage_os_disk {
-    name              = "os-disk-agent-${count.index + 1}"
+    name              = "${data.template_file.cluster-name.rendered}-os-disk-agent-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"

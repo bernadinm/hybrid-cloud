@@ -1,68 +1,67 @@
-## DC/OS GPU Private Agent
-## State: Experimental
-#
-# This came out from an experiment to extend GPU support to DC/OS.
-# You can easily add this module by removing '.disabled' 
-# to the file name. You an always remove it at any time. The defaults 
-# variables are managed by this sinlge file for ease of integration. 
-
-variable "num_of_gpu_agents" {
-  default = "1"
+variable "num_of_private_agent_group_2" {
+  description = "DC/OS Private Agents Count"
+  default = 3
 }
 
-variable "aws_gpu_agent_instance_type" {
-  default = "g2.2xlarge"
+variable "aws_group_2_private_agent_az" {
+  description = "AWS Default Zone"
+  default     = "b"
 }
 
-# AMI Zone US-WEST-2
-variable "aws_gpu_ami" {
- default = "ami-9b5d97fb"
+# Create a subnet to launch slave private node into
+resource "aws_subnet" "default_group_2_private" {
+  
+  vpc_id                  = "${var.vpc_id}"
+  cidr_block              = "${cidrsubnet("10.11.0.0/16", 6, 2)}"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}${var.aws_group_2_private_agent_az}"
 }
 
-# AWS Resourece Agent for GPUs
-resource "aws_instance" "gpu-agent" {
+
+# Private agent instance deploy
+resource "aws_instance" "agent_group_2" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    user = "centos"
+    user = "${module.aws-tested-oses.user}"
 
     # The connection will use the local SSH agent for authentication.
   }
 
   root_block_device {
-    volume_size = "${var.instance_disk_size}"
+    volume_size = "${var.aws_agent_instance_disk_size}"
   }
 
-  count = "${var.num_of_gpu_agents}"
-  instance_type = "${var.aws_gpu_agent_instance_type}"
+  count = "${var.num_of_private_agent_group_2}"
+  instance_type = "${var.aws_agent_instance_type}"
 
-  ebs_optimized = "true"
+  # ebs_optimized = "true" # Not supported for all configurations
 
   tags {
    owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
-   Name =  "${data.template_file.cluster-name.rendered}-gpuagt-${count.index + 1}"
+   Name =  "${data.template_file.cluster-name.rendered}-pvtagt-${count.index + 1}"
    cluster = "${data.template_file.cluster-name.rendered}"
   }
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${var.aws_gpu_ami}"      
+  ami = "${module.aws-tested-oses.aws_ami}"
 
   # The name of our SSH keypair we created above.
-  key_name = "${var.key_name}"
+  key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.private_slave.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.private.id}"
+  subnet_id = "${aws_subnet.default_group_2_private.id}"
 
   # OS init script
   provisioner "file" {
-   source = "modules/dcos-tested-aws-oses/platform/cloud/aws/centos_7.2/setup.sh"
+   content = "${module.aws-tested-oses.os-setup}"
    destination = "/tmp/os-setup.sh"
    }
 
@@ -79,34 +78,24 @@ resource "aws_instance" "gpu-agent" {
   lifecycle {
     ignore_changes = ["tags.Name"]
   }
+  availability_zone       = "${var.aws_region}${var.aws_group_2_private_agent_az}"
 }
-
-
-# Create DCOS Mesos Agent Scripts to execute
-module "dcos-mesos-gpu-agent" {
-  source               = "github.com/bernadinm/tf_dcos_core"
-  bootstrap_private_ip = "${aws_instance.bootstrap.private_ip}"
-  dcos_install_mode    = "${var.state}"
-  dcos_version         = "${var.dcos_version}"
-  role                 = "dcos-mesos-agent"
-}
-
 
 # Execute generated script on agent
-resource "null_resource" "gpu-agent" {
+resource "null_resource" "agent_group_2" {
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.bootstrap.id}"
+    current_ec2_instance_id = "${aws_instance.agent_group_2.*.id[count.index]}"
   }
-
   # Bootstrap script can run on any instance of the cluster
   # So we just choose the first in this case
   connection {
-    host = "${element(aws_instance.gpu-agent.*.public_ip, count.index)}"
-    user = "centos"
+    host = "${element(aws_instance.agent_group_2.*.public_ip, count.index)}"
+    user = "${module.aws-tested-oses.user}"
   }
 
-  count = "${var.num_of_gpu_agents}"
+  count = "${var.num_of_private_agent_group_2}"
 
   # Generate and upload Agent script to node
   provisioner "file" {
@@ -128,9 +117,14 @@ resource "null_resource" "gpu-agent" {
       "sudo ./run.sh",
     ]
   }
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+    ]
+  }
 }
-
-output "GPU Private Public IP Address" {
-  value = ["${aws_instance.gpu-agent.*.public_ip}"]
-}
-
+#output "Private Agent Public IP Address" {
+#  value = ["${aws_instance.agent_group_2.*.public_ip}"]
+#}
