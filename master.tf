@@ -12,7 +12,7 @@ resource "aws_elb" "internal-master-elb" {
   internal = "true"
 
   subnets         = ["subnet-8b0403ef"]
-  security_groups = ["sg-b4a946c2"]
+  security_groups = ["${aws_security_group.master.id}","${aws_security_group.public_slave.id}", "${aws_security_group.private_slave.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
   listener {
@@ -75,7 +75,7 @@ resource "aws_elb" "public-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-mas-elb"
 
   subnets         = ["subnet-8b0403ef"]
-  security_groups = ["sg-b4a946c2"]
+  security_groups = ["${aws_security_group.admin.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
   listener {
@@ -139,7 +139,7 @@ resource "aws_instance" "master" {
   key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["sg-b4a946c2"]
+  vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
 
   # OS init script
   provisioner "file" {
