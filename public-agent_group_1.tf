@@ -3,6 +3,18 @@ variable "num_of_public_agent_group_1" {
   default = 1
 }
 
+variable "aws_group_1_public_agent_az" {
+  description = "AWS Default Zone"
+  default     = "a"
+}
+
+resource "aws_subnet" "default_group_1_public" {
+  vpc_id                  = "${var.vpc_id}"
+  cidr_block              = "${cidrsubnet("10.11.0.0/16", 6, 7)}"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}${var.aws_group_1_public_agent_az}"
+}
+
 resource "aws_instance" "public-agent-group-1" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -17,7 +29,7 @@ resource "aws_instance" "public-agent-group-1" {
     volume_size = "${var.aws_public_agent_instance_disk_size}"
   }
 
-  count = "${var.num_of_public_agents}"
+  count = "${var.num_of_public_agent_group_1}"
   instance_type = "${var.aws_public_agent_instance_type}"
 
   # ebs_optimized = "true" # Not supported for all configurations
@@ -41,7 +53,7 @@ resource "aws_instance" "public-agent-group-1" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "subnet-8b0403ef"
+  subnet_id = "${aws_subnet.default_group_1_public.id}"
 
   # OS init script
   provisioner "file" {
@@ -62,7 +74,7 @@ resource "aws_instance" "public-agent-group-1" {
   lifecycle {
     ignore_changes = ["tags.Name"]
   }
-  availability_zone = "us-east-1b"
+  availability_zone = "${var.aws_region}${var.aws_group_1_public_agent_az}"
 }
 
 # Execute generated script on agent
@@ -80,7 +92,7 @@ resource "null_resource" "public-agent-group-1" {
     user = "${module.aws-tested-oses.user}"
   }
 
-  count = "${var.num_of_public_agents}"
+  count = "${var.num_of_public_agent_group_1}"
 
   # Generate and upload Agent script to node
   provisioner "file" {
