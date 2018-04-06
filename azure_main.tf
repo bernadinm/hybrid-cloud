@@ -10,7 +10,7 @@
 resource "azurerm_network_security_group" "public_subnet_security_group" {
     name = "${data.template_file.cluster-name.rendered}-master-security-group"
     location                 = "UK South"
-    resource_group_name      = "hybrid-demo"
+    resource_group_name = "${var.azure_rg_name}"
 }
 
 # Public Subnet NSG Rule
@@ -24,7 +24,7 @@ resource "azurerm_network_security_rule" "public-subnet-httpRule" {
     destination_port_range      = "80"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "hybrid-demo"
+    resource_group_name = "${var.azure_rg_name}"
     network_security_group_name = "${azurerm_network_security_group.public_subnet_security_group.name}"
 }
 
@@ -39,6 +39,6 @@ resource "azurerm_network_security_rule" "public-subnet-httpsRule" {
     destination_port_range      = "443"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "hybrid-demo"
+    resource_group_name = "${var.azure_rg_name}"
     network_security_group_name = "${azurerm_network_security_group.public_subnet_security_group.name}"
 }

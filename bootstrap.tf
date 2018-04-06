@@ -5,7 +5,7 @@ resource "aws_instance" "bootstrap" {
   connection {
     # The default username for our AMI
     user = "${module.aws-tested-oses.user}"
-
+    host = "${self.public_ip}"
     # The connection will use the local SSH agent for authentication.
   }
 
@@ -30,12 +30,13 @@ resource "aws_instance" "bootstrap" {
   key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["sg-b4a946c2"]
+  vpc_security_group_ids = ["${var.aws_sg}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "subnet-8b0403ef"
+  #subnet_id = "${var.aws_subnet}"
+  subnet_id = "${aws_subnet.public.id}"
 
   # OS init script
   provisioner "file" {
