@@ -2,10 +2,6 @@ variable "vpc_id" {
   default = "vpc-9d0260e6"
 }
 
-variable "aws_subnet" {
-  default = "subnet-86faf6db"
-}
-
 variable "aws_sg" {
   default = "sg-fbd226b2"
 }

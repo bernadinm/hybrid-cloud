@@ -12,7 +12,7 @@ module "dcos-mesos-agent-public" {
 resource "aws_elb" "public-agent-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-agt-elb"
 
-  subnets         = ["${var.aws_subnet}"]
+  subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${var.aws_sg}"]
   instances       = ["${aws_instance.public-agent-group-1.*.id}", "${aws_instance.public-agent-group-2.*.id}", "${aws_instance.public-agent-group-3.*.id}"]
 
