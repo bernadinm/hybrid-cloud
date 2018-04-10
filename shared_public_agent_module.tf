@@ -12,8 +12,8 @@ module "dcos-mesos-agent-public" {
 resource "aws_elb" "public-agent-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-agt-elb"
 
-  subnets         = ["${aws_subnet.public.id}"]
-  security_groups = ["${var.aws_sg}"]
+  subnets         = ["subnet-8b0403ef"]
+  security_groups = ["sg-b4a946c2"]
   instances       = ["${aws_instance.public-agent-group-1.*.id}", "${aws_instance.public-agent-group-2.*.id}", "${aws_instance.public-agent-group-3.*.id}"]
 
   listener {
@@ -47,3 +47,6 @@ output "Public Agent ELB Address" {
   value = "${aws_elb.public-agent-elb.dns_name}"
 }
 
+output "Azure Public Agent ELB Address" {
+  value = "${azurerm_public_ip.public_agent_load_balancer_public_ip.fqdn}"
+}

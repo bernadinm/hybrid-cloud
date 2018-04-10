@@ -2,26 +2,16 @@ variable "num_of_azure_private_agents" {
   default = "3"
 }
 
-variable "azure_admin_username" {
-  description = "Username of the OS. (Defaults can be found here modules/dcos-tested-azure-oses/azure_template_file.tf)"
-  default = ""
-}
-
 variable "azure_agent_instance_type" {
   description = "Azure DC/OS Private Agent instance type"
   default = "Standard_DS11_v2"
 }
 
-variable "ssh_pub_key" {
-  description = "The Public SSH Key associated with your instances for login. Copy your own key from your machine when deploying to log into your instance."
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCJtEX2fuZ4EWXCL3M37Qbr0mj3saEdhOwnLGJk8hr5xFOa8DoTs5IofaHfeRoiOKwfg44PW4fpDIz/e7X/9tmKTuwOszuAE9QTWQijZesCanLSf5nwYCTMsNGlUfxhjpJhcgQIcZ6vcDbNeGIQTElgsBKXoIXDosP3qjdWuwEEIfaQJDo4Mv16P+SqzPJ1KIV16lfw2NW71y7JzNApPRWxlxkoTiydv1hs6Ye6b6MTLLeDIsyzPqNro5/LpQkT7hr37pG88xC22Cn2lA18hhusP0wP+6pZbnbveKLVFkSdVlZAKgsEZ0UyAXsKElWtTHN+SXuqXmldg8h7n6GF1/tmEz7n/2+SBH+nNBlQPM/VOxW7yDwCKWr87mFI009a6ge66U4q+lqrfKzNSIsoamuICYg8GtAGK3yuPQq+pwFluJRUEihZQDlJ7IvezAKThglyDgV31D9frCqJ4gMTfzSnZ2PW54vJjNyAHZQoCqp/Y0aIdjwpnHw6F+blPmgXzzsheMahME7iCMQP1F/ckgXfq1rtI0mT1QNZhUtfFf1qYguNT0EdCGy3G3oWnHiIqjcq/wfhCTpf22ph7h1Q+b1ygXXIGnQWfyY/vZTDdW2lbrX36X/fZA3M74SBmQFEMWrul4tX//YwGtpHSyN380fdRHyCPPo6+BSB7KHVwDevw== default@mesosphere.com"
-}
-
 # Private Agents
 resource "azurerm_managed_disk" "agent_managed_disk" {
   count                = "${var.num_of_azure_private_agents}"
-  name                 = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-${count.index + 1}"
-  resource_group_name = "${var.azure_rg_name}"
+  name                 = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
+  resource_group_name  = "hybrid-demo"
   location             = "${var.azure_region}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
@@ -31,17 +21,17 @@ resource "azurerm_managed_disk" "agent_managed_disk" {
 # Public IP addresses
 resource "azurerm_public_ip" "agent_public_ip" {
   count                        = "${var.num_of_azure_private_agents}"
-  name                         = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-pub-ip-${count.index + 1}"
-  resource_group_name = "${var.azure_rg_name}"
+  name                         = "${data.template_file.cluster-name.rendered}-agent-pub-ip-${count.index + 1}"
+  resource_group_name          = "hybrid-demo"
   location                     = "${var.azure_region}"
   public_ip_address_allocation = "dynamic"
-  domain_name_label            = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-${count.index + 1}"
+  domain_name_label            = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
 }
 
 # Agent Security Groups for NICs
 resource "azurerm_network_security_group" "agent_security_group" {
-    name = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-security-group"
-    resource_group_name = "${var.azure_rg_name}"
+    name = "hybrid-cloud-agent-security-group"
+    resource_group_name         = "hybrid-demo"
     location                    = "${var.azure_region}"
 }
 
@@ -55,7 +45,7 @@ resource "azurerm_network_security_rule" "agent-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -70,7 +60,7 @@ resource "azurerm_network_security_rule" "agent-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -84,22 +74,22 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name         = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 # End of Agent NIC Security Group
 
 # Agent NICs with Security Group
 resource "azurerm_network_interface" "agent_nic" {
-  name                      = "${data.template_file.cluster-name.rendered}-hybrid-cloud-private-agent-${count.index}-nic"
-  resource_group_name = "${var.azure_rg_name}"
+  name                      = "${data.template_file.cluster-name.rendered}-private-agent-${count.index}-nic"
+  resource_group_name       = "hybrid-demo"
   location                  = "${var.azure_region}"
   network_security_group_id = "${azurerm_network_security_group.agent_security_group.id}"
   count                     = "${var.num_of_azure_private_agents}"
 
   ip_configuration {
-   name                                    = "${data.template_file.cluster-name.rendered}-hybrid-cloud-${count.index}-ipConfig"
-   subnet_id = "${var.azure_full_subnet_id}"
+   name                                    = "hybrid-cloud-${count.index}-ipConfig"
+   subnet_id                               = "/subscriptions/6bfddfe6-078b-4a9d-86ff-52e86464efe0/resourceGroups/hybrid-demo/providers/Microsoft.Network/virtualNetworks/hybridvnet/subnets/hybrid-csr-private"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${element(azurerm_public_ip.agent_public_ip.*.id, count.index)}"
   }
@@ -107,8 +97,8 @@ resource "azurerm_network_interface" "agent_nic" {
 
 # Create an availability set
 resource "azurerm_availability_set" "agent_av_set" {
-  name                         = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-avset"
-  resource_group_name = "${var.azure_rg_name}"
+  name                         = "${data.template_file.cluster-name.rendered}-agent-avset"
+  resource_group_name          = "hybrid-demo"
   location                     = "${var.azure_region}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 1
@@ -117,8 +107,8 @@ resource "azurerm_availability_set" "agent_av_set" {
 
 # Agent VM Coniguration
 resource "azurerm_virtual_machine" "agent" {
-    name                             = "${data.template_file.cluster-name.rendered}-hybrid-cloud-agent-${count.index + 1}"
-    resource_group_name = "${var.azure_rg_name}"
+    name                             = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
+    resource_group_name              = "hybrid-demo"
     location                         = "${var.azure_region}"
     network_interface_ids            = ["${azurerm_network_interface.agent_nic.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.agent_av_set.id}"
@@ -150,7 +140,7 @@ resource "azurerm_virtual_machine" "agent" {
   }
 
   os_profile {
-    computer_name  = "agent-${count.index + 1}"
+    computer_name  = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
     admin_username = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
   }
 

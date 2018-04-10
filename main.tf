@@ -50,7 +50,7 @@ resource "random_id" "cluster" {
 
 # A security group that allows all port access to internal vpc
 resource "aws_security_group" "any_access_internal" {
-  name        = "cluster-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-cluster-security-group"
   description = "Manage all ports cluster level"
   vpc_id      = "${var.vpc_id}"
 
@@ -73,7 +73,7 @@ resource "aws_security_group" "any_access_internal" {
 
 # A security group for the ELB so it is accessible via the web
 resource "aws_security_group" "elb" {
-  name        = "elb-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-elb-security-group"
   description = "A security group for the elb"
   vpc_id      = "${var.vpc_id}"
 
@@ -104,7 +104,7 @@ resource "aws_security_group" "elb" {
 
 # A security group for Admins to control access
 resource "aws_security_group" "admin" {
-  name        = "admin-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-admin-security-group"
   description = "Administrators can manage their machines"
   vpc_id      = "${var.vpc_id}"
 
@@ -144,7 +144,7 @@ resource "aws_security_group" "admin" {
 # A security group for the ELB so it is accessible via the web
 # with some master ports for internal access only
 resource "aws_security_group" "master" {
-  name        = "master-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-master-security-group"
   description = "Security group for masters"
   vpc_id      = "${var.vpc_id}"
 
@@ -207,7 +207,7 @@ resource "aws_security_group" "master" {
 
 # A security group for public slave so it is accessible via the web
 resource "aws_security_group" "public_slave" {
-  name        = "public-slave-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-public-slave-security-group"
   description = "security group for slave public"
   vpc_id      = "${var.vpc_id}"
 
@@ -274,7 +274,7 @@ resource "aws_security_group" "public_slave" {
 
 # A security group for private slave so it is accessible internally
 resource "aws_security_group" "private_slave" {
-  name        = "private-slave-security-group"
+  name        = "{data.template_file.cluster-name.rendered}-private-slave-security-group"
   description = "security group for slave private"
   vpc_id      = "${var.vpc_id}"
 

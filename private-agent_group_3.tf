@@ -12,7 +12,7 @@ variable "aws_group_3_private_agent_az" {
 resource "aws_subnet" "default_group_3_private" {
   
   vpc_id                  = "${var.vpc_id}"
-  cidr_block              = "${cidrsubnet("10.11.0.0/16", 6, 3)}"
+  cidr_block              = "${cidrsubnet("10.11.0.0/16", 6, 10)}"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}${var.aws_group_3_private_agent_az}"
 }
@@ -52,7 +52,7 @@ resource "aws_instance" "agent_group_3" {
   key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${var.aws_sg}"]
+  vpc_security_group_ids = ["sg-b4a946c2"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
@@ -120,8 +120,8 @@ resource "null_resource" "agent_group_3" {
   # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
   provisioner "remote-exec" {
     inline = [
-     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
     ]
   }
 }

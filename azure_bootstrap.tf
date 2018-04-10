@@ -7,7 +7,7 @@ variable "azure_bootstrap_instance_type" {
 resource "azurerm_managed_disk" "bootstrap_managed_disk" {
   name                 = "${data.template_file.cluster-name.rendered}-bootstrap"
   location             = "${var.azure_region}"
-  resource_group_name = "${var.azure_rg_name}"
+  resource_group_name  = "hybrid-demo"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
@@ -17,7 +17,7 @@ resource "azurerm_managed_disk" "bootstrap_managed_disk" {
 resource "azurerm_public_ip" "bootstrap_public_ip" {
   name                         = "${data.template_file.cluster-name.rendered}-bootstrap-pub-ip"
   location                     = "${var.azure_region}"
-  resource_group_name = "${var.azure_rg_name}"
+  resource_group_name  = "hybrid-demo"
   public_ip_address_allocation = "dynamic"
   domain_name_label = "${data.template_file.cluster-name.rendered}-bootstrap"
 
@@ -31,7 +31,7 @@ resource "azurerm_public_ip" "bootstrap_public_ip" {
 resource "azurerm_network_security_group" "bootstrap_security_group" {
     name = "${data.template_file.cluster-name.rendered}-bootstrap-security-group"
     location = "${var.azure_region}"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
 
     tags {
       Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
@@ -49,7 +49,7 @@ resource "azurerm_network_security_rule" "bootstrap-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -64,7 +64,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpRule" {
     destination_port_range      = "80"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -78,7 +78,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpsRule" {
     destination_port_range      = "443"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -92,7 +92,7 @@ resource "azurerm_network_security_rule" "bootstrap-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -106,7 +106,7 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -116,12 +116,12 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
 resource "azurerm_network_interface" "bootstrap_nic" {
   name                      = "${data.template_file.cluster-name.rendered}-bootstrap-nic"
   location                  = "${var.azure_region}"
-  resource_group_name = "${var.azure_rg_name}"
+  resource_group_name  = "hybrid-demo"
   network_security_group_id = "${azurerm_network_security_group.bootstrap_security_group.id}"
 
   ip_configuration {
    name                                    = "${data.template_file.cluster-name.rendered}-bootstrap-ipConfig"
-   subnet_id = "${var.azure_full_subnet_id}"
+   subnet_id                               = "/subscriptions/6bfddfe6-078b-4a9d-86ff-52e86464efe0/resourceGroups/hybrid-demo/providers/Microsoft.Network/virtualNetworks/hybridvnet/subnets/hybrid-csr-private"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${azurerm_public_ip.bootstrap_public_ip.id}"
   }
@@ -136,7 +136,7 @@ resource "azurerm_network_interface" "bootstrap_nic" {
 resource "azurerm_virtual_machine" "bootstrap" {
     name                             = "${data.template_file.cluster-name.rendered}-bootstrap"
     location                         = "${var.azure_region}"
-    resource_group_name = "${var.azure_rg_name}"
+    resource_group_name  = "hybrid-demo"
     network_interface_ids            = ["${azurerm_network_interface.bootstrap_nic.id}"]
     vm_size                          = "${var.azure_bootstrap_instance_type}"
     delete_os_disk_on_termination    = true

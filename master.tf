@@ -5,19 +5,13 @@ resource "aws_elb_attachment" "internal-master-elb" {
   instance = "${aws_instance.master.*.id[count.index]}"
 }
 
-resource "aws_subnet" "public" {
-  vpc_id                  = "${var.vpc_id}"
-  cidr_block              = "${cidrsubnet("10.11.0.0/16", 9, 4)}"
-  map_public_ip_on_launch = true
-}
-
 # Internal Load Balancer Access
 # Mesos Master, Zookeeper, Exhibitor, Adminrouter, Marathon
 resource "aws_elb" "internal-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-int-master-elb"
   internal = "true"
 
-  subnets         = ["${aws_subnet.public.id}"]
+  subnets         = ["subnet-8b0403ef"]
   security_groups = ["${aws_security_group.master.id}","${aws_security_group.public_slave.id}", "${aws_security_group.private_slave.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
@@ -80,7 +74,7 @@ resource "aws_elb_attachment" "public-master-elb" {
 resource "aws_elb" "public-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-mas-elb"
 
-  subnets         = ["${aws_subnet.public.id}"]
+  subnets         = ["subnet-8b0403ef"]
   security_groups = ["${aws_security_group.admin.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
@@ -117,7 +111,7 @@ resource "aws_instance" "master" {
   connection {
     # The default username for our AMI
     user = "${module.aws-tested-oses.user}"
-    host = "${self.public_ip}"
+
     # The connection will use the local SSH agent for authentication.
   }
 
@@ -156,8 +150,7 @@ resource "aws_instance" "master" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  #subnet_id = "${var.aws_subnet}"
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = "subnet-8b0403ef"
 
  # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
