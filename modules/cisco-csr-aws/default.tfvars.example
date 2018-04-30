@@ -1,0 +1,8 @@
+vpc_id = "vpc-1ce5c765"
+subnet_id = "subnet-05fa767c"
+aws_region = "us-west-2"
+aws_profile = "273854932432_Mesosphere-PowerUser"
+ssh_key_name = "default"
+destination_cidr = ""
+destination_csr_public_ip = ""
+instance_type = "c4.large"

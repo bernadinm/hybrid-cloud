@@ -1,7 +1,6 @@
 variable "vpc_id" {
-  # TODO(mbernadin): change to ""
   description = "Existing VPC to install Cisco CSR on"
-  default     = "vpc-1ce5c765"
+  default     = ""
 }
 
 variable "instance_type" {
@@ -10,13 +9,11 @@ variable "instance_type" {
 }
 
 variable "aws_region" {
-  # TODO(mbernadin): change to ""
-  default = "us-west-2"
+  default = ""
 }
 
 variable "aws_profile" {
-  # TODO(mbernadin): change to ""
-  default = "273854932432_Mesosphere-PowerUser"
+  default = ""
 }
 
 variable "destination_cidr" {
@@ -30,7 +27,7 @@ variable "destination_csr_public_ip" {
 }
 
 variable "local_csr_public_ip" {
-  description = "Public IP address of the current Cisco CSR"
+  description = "Public IP address of the current Cisco CSR. If none is provided, an EIP will be created and used."
   default     = ""
 }
 
@@ -40,13 +37,11 @@ variable "terraform_dcos_destination_provider" {
 }
 
 variable "subnet_id" {
-  # TODO(mbernadin): change to ""
   description = "selected subnet chosen for Cisco CSR on an existing subnet"
-  default     = "subnet-05fa767c"
+  default     = ""
 }
 
 variable "ssh_key_name" {
-  # TODO(mbernadin): change to ""
   description = "AWS Key Pair name for ssh"
-  default     = "default"
+  default     = ""
 }

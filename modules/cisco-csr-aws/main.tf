@@ -40,6 +40,7 @@ resource "aws_route" "route" {
 }
 
 resource "aws_eip" "csr_public_ip" {
+  count = "${length(var.local_csr_public_ip) == "0" ? "1" : "0"}"
   vpc = true
   instance = "${aws_instance.cisco.id}"
 }

@@ -7,7 +7,7 @@ output "destination_cidr" {
 }
 
 output "cisco_elastic_public_ip_address" {
-  value = "${aws_eip.csr_public_ip.public_ip}"
+  value = "${aws_eip.csr_public_ip.*.public_ip}"
 }
 
 output "cisco_ssh_user" {
