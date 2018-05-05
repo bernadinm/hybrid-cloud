@@ -9,8 +9,8 @@ variable "aws_group_1_public_agent_az" {
 }
 
 resource "aws_subnet" "default_group_1_public" {
-  vpc_id                  = "${var.vpc_id}"
-  cidr_block              = "${cidrsubnet("10.11.0.0/16", 6, 11)}"
+  vpc_id                  = "${aws_vpc.default.id}"
+  cidr_block              = "${cidrsubnet(aws_vpc.default.cidr_block, 6, 11)}"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}${var.aws_group_1_public_agent_az}"
 }
@@ -48,7 +48,7 @@ resource "aws_instance" "public-agent-group-1" {
   key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["sg-b4a946c2"]
+  vpc_security_group_ids = ["${aws_security_group.public_slave.id}", "${aws_security_group.http-https.id}", "${aws_security_group.any_access_internal.id}", "${aws_security_group.ssh.id}", "${aws_security_group.internet-outbound.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for

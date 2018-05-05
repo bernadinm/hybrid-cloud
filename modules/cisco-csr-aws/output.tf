@@ -7,7 +7,7 @@ output "destination_cidr" {
 }
 
 output "public_ip_address" {
-  value = "${aws_eip.csr_public_ip.*.public_ip}"
+  value = "${aws_eip.csr_public_ip.public_ip}"
 }
 
 output "private_ip_address" {

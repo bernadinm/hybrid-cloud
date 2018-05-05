@@ -11,7 +11,7 @@ resource "aws_elb" "internal-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-int-master-elb"
   internal = "true"
 
-  subnets         = ["subnet-8b0403ef"]
+  subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.master.id}","${aws_security_group.public_slave.id}", "${aws_security_group.private_slave.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
@@ -57,6 +57,14 @@ resource "aws_elb" "internal-master-elb" {
     instance_protocol = "http"
   }
 
+  health_check {
+    healthy_threshold = 2
+    unhealthy_threshold = 2
+    timeout = 5
+    target = "TCP:5050"
+    interval = 30
+  }
+
   lifecycle {
     ignore_changes = ["name"]
   }
@@ -74,8 +82,8 @@ resource "aws_elb_attachment" "public-master-elb" {
 resource "aws_elb" "public-master-elb" {
   name = "${data.template_file.cluster-name.rendered}-pub-mas-elb"
 
-  subnets         = ["subnet-8b0403ef"]
-  security_groups = ["${aws_security_group.admin.id}"]
+  subnets         = ["${aws_subnet.public.id}"]
+  security_groups = ["${aws_security_group.http-https.id}", "${aws_security_group.master.id}", "${aws_security_group.internet-outbound.id}"]
   instances       = ["${aws_instance.master.*.id}"]
 
   listener {
@@ -111,6 +119,8 @@ resource "aws_instance" "master" {
   connection {
     # The default username for our AMI
     user = "${module.aws-tested-oses.user}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
 
     # The connection will use the local SSH agent for authentication.
   }
@@ -121,8 +131,9 @@ resource "aws_instance" "master" {
 
   count = "${var.num_of_masters}"
   instance_type = "${var.aws_master_instance_type}"
+  iam_instance_profile = "${aws_iam_instance_profile.master.name}"
 
-  # ebs_optimized = "true" # Not supported for all configurations
+  ebs_optimized  = "true"
 
   tags {
    owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
@@ -138,8 +149,8 @@ resource "aws_instance" "master" {
   # The name of our SSH keypair we created above.
   key_name = "${var.ssh_key_name}"
 
-  # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.master.id}","${aws_security_group.admin.id}","${aws_security_group.any_access_internal.id}"]
+  # Our Security group to allow http, SSH, and outbound internet access only for pulling containers from the web
+  vpc_security_group_ids = ["${aws_security_group.http-https.id}", "${aws_security_group.any_access_internal.id}", "${aws_security_group.ssh.id}", "${aws_security_group.internet-outbound.id}"]
 
   # OS init script
   provisioner "file" {
@@ -150,7 +161,7 @@ resource "aws_instance" "master" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "subnet-8b0403ef"
+  subnet_id = "${aws_subnet.public.id}"
 
  # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
@@ -169,14 +180,18 @@ resource "aws_instance" "master" {
 
 # Create DCOS Mesos Master Scripts to execute
 module "dcos-mesos-master" {
-  source = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
+  source               = "github.com/dcos/tf_dcos_core"
   bootstrap_private_ip = "${aws_instance.bootstrap.private_ip}"
-  dcos_install_mode    = "${var.state}"
+  dcos_bootstrap_port  = "${var.custom_dcos_bootstrap_port}"
+  # Only allow upgrade and install as installation mode
+  dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
   dcos_version         = "${var.dcos_version}"
   role                 = "dcos-mesos-master"
 }
 
 resource "null_resource" "master" {
+  # If state is set to none do not install DC/OS
+  count = "${var.state == "none" ? 0 : var.num_of_masters}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.bootstrap.id}"
@@ -187,6 +202,8 @@ resource "null_resource" "master" {
   connection {
     host = "${element(aws_instance.master.*.public_ip, count.index)}"
     user = "${module.aws-tested-oses.user}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
   }
 
   count = "${var.num_of_masters}"
@@ -200,7 +217,7 @@ resource "null_resource" "master" {
   # Wait for bootstrapnode to be ready
   provisioner "remote-exec" {
     inline = [
-     "until $(curl --output /dev/null --silent --head --fail http://${aws_instance.bootstrap.private_ip}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
+     "until $(curl --output /dev/null --silent --head --fail http://${aws_instance.bootstrap.private_ip}:${var.custom_dcos_bootstrap_port}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
     ]
   }
 
@@ -215,24 +232,15 @@ resource "null_resource" "master" {
   # Watch Master Nodes Start
   provisioner "remote-exec" {
     inline = [
-      "until $(curl --output /dev/null --silent --head --fail http://${element(aws_instance.master.*.public_ip, count.index)}/); do printf 'loading DC/OS...'; sleep 10; done"
+      "until $(curl --output /dev/null --silent --head --fail http://${element(aws_instance.master.*.private_ip, count.index)}/); do printf 'loading DC/OS...'; sleep 10; done"
     ]
   }
-
-  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
-  provisioner "remote-exec" {
-    inline = [
-     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo sed -i.bak '145 s/1s/100s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-    ]
-  }
-
 }
 
-output "Master ELB Address" {
+output "Master ELB Public IP" {
   value = "${aws_elb.public-master-elb.dns_name}"
 }
 
-output "Mesos Master Public IP" {
+output "Master Public IPs" {
   value = ["${aws_instance.master.*.public_ip}"]
 }

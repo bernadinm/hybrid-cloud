@@ -6,4 +6,3 @@ module "dcos-mesos-agent" {
   dcos_version         = "${var.dcos_version}"
   role                 = "dcos-mesos-agent"
 }
-

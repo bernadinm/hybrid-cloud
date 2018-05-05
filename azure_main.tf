@@ -6,6 +6,46 @@
       region   = "${var.azure_region}"
 }
 
+# Create a resource group
+resource "azurerm_resource_group" "dcos" {
+  name     = "dcos-${data.template_file.cluster-name.rendered}"
+  location = "${var.azure_region}"
+
+  tags {
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
+  }
+}
+
+# Create a virtual network in the web_servers resource group
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-${data.template_file.cluster-name.rendered}"
+  address_space       = ["10.32.0.0/16"]
+  location            = "${var.azure_region}"
+  resource_group_name = "${azurerm_resource_group.dcos.name}"
+
+  tags {
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
+  }
+}
+
+resource "azurerm_subnet" "public" {
+  name                      = "public"
+  address_prefix            = "10.32.0.0/22"
+  virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
+  network_security_group_id = "${azurerm_network_security_group.public_subnet_security_group.id}"
+}
+
+resource "azurerm_subnet" "private" {
+  name                 = "private"
+  address_prefix       = "10.32.4.0/22"
+  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name  = "${azurerm_resource_group.dcos.name}"
+}
+
+
 # Public Subnet Security Groups
 resource "azurerm_network_security_group" "public_subnet_security_group" {
     name = "${data.template_file.cluster-name.rendered}-master-security-group"
