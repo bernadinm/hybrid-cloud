@@ -1,11 +1,11 @@
 variable "public_ip_site_one" {}
 variable "private_ip_site_one" {}
 variable "username_site_one" {}
-variable "password_site_one" {}
+variable "password_site_one" { default = "" }
 variable "public_ip_site_two" {}
 variable "private_ip_site_two" {}
 variable "username_site_two" {}
-variable "password_site_two" {}
+variable "password_site_two" { default = "" }
 
 variable "remote_pre_share_key" {
   default = "cisco123"

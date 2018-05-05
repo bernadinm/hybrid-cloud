@@ -6,10 +6,14 @@ output "destination_cidr" {
   value = "${data.template_file.terraform-dcos-default-cidr.rendered}"
 }
 
-output "cisco_elastic_public_ip_address" {
+output "public_ip_address" {
   value = "${aws_eip.csr_public_ip.*.public_ip}"
 }
 
-output "cisco_ssh_user" {
+output "private_ip_address" {
+  value = "${aws_instance.cisco.private_ip}"
+}
+
+output "ssh_user" {
   value = "ec2-user"
 }

@@ -103,6 +103,14 @@ resource "azurerm_virtual_machine" "cisco" {
     os_profile_linux_config {
         disable_password_authentication = false
     }
+
+#  os_profile_linux_config {
+#    disable_password_authentication = true
+#    ssh_keys {
+#        path     = "/home/${var.cisco_user}/.ssh/authorized_keys"
+#        key_data = "${var.ssh_pub_key}"
+#    }
+#  }
     network_interface_ids = ["${azurerm_network_interface.cisco_nic.id}"]
     primary_network_interface_id = "${azurerm_network_interface.cisco_nic.id}"
 }

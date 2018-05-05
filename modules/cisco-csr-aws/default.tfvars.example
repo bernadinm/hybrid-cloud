@@ -1,5 +1,5 @@
-vpc_id = "vpc-1ce5c765"
-subnet_id = "subnet-05fa767c"
+vpc_id = "vpc-b91b34c0"
+subnet_id = "subnet-2ee88b74"
 aws_region = "us-west-2"
 aws_profile = "273854932432_Mesosphere-PowerUser"
 ssh_key_name = "default"
