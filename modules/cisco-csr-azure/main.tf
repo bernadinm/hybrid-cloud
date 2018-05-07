@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "cisco_nic" {
         name = "cisco_nic"
         subnet_id = "${data.azurerm_subnet.public.id}"
         private_ip_address_allocation = "dynamic"
-        public_ip_address_id          = "${data.azurerm_public_ip.cisco.id}"
+        public_ip_address_id          = "${azurerm_public_ip.cisco.id}"
     }
 }
 
@@ -118,4 +118,5 @@ resource "azurerm_virtual_machine" "cisco" {
 data "azurerm_public_ip" "cisco" {
   name                = "${azurerm_public_ip.cisco.name}"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  depends_on          = ["azurerm_virtual_machine.cisco"]
 }
