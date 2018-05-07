@@ -12,7 +12,7 @@ resource "azurerm_managed_disk" "public_agent_managed_disk" {
   count                = "${var.num_of_azure_public_agents}"
   name                 = "${data.template_file.cluster-name.rendered}-public-agent-${count.index + 1}"
   location             = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
@@ -24,7 +24,7 @@ resource "azurerm_managed_disk" "public_agent_managed_disk" {
 resource "azurerm_public_ip" "public_agent_load_balancer_public_ip" {
   name                         = "${data.template_file.cluster-name.rendered}-public-lb-ip"
   location                     = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   public_ip_address_allocation = "dynamic"
   domain_name_label = "public-agent-${data.template_file.cluster-name.rendered}"
 
@@ -40,7 +40,7 @@ resource "azurerm_public_ip" "public_agent_public_ip" {
   count                        = "${var.num_of_azure_public_agents}"
   name                         = "${data.template_file.cluster-name.rendered}-public-agent-pub-ip-${count.index + 1}"
   location                     = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   public_ip_address_allocation = "dynamic"
   domain_name_label = "${data.template_file.cluster-name.rendered}-public-agent-${count.index + 1}"
 
@@ -54,7 +54,7 @@ resource "azurerm_public_ip" "public_agent_public_ip" {
 resource "azurerm_lb" "public_agent_public_load_balancer" {
   name                = "${data.template_file.cluster-name.rendered}-pub-agent-elb"
   location            = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
 
   frontend_ip_configuration {
     name                 = "${data.template_file.cluster-name.rendered}-public-agent-ip-config"
@@ -70,13 +70,13 @@ resource "azurerm_lb" "public_agent_public_load_balancer" {
 # Back End Address Pool for Public and Private Loadbalancers
 resource "azurerm_lb_backend_address_pool" "external_public_agent_backend_pool" {
   name                = "${data.template_file.cluster-name.rendered}-public_backend_address_pool"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
 }
 
 # Load Balancer Rule
 resource "azurerm_lb_rule" "agent_public_load_balancer_http_rule" {
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer.id}"
   name                           = "HTTPRule"
   protocol                       = "Tcp"
@@ -90,7 +90,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_http_rule" {
 
 # Load Balancer Rule
 resource "azurerm_lb_rule" "agent_public_load_balancer_https_rule" {
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer.id}"
   name                           = "HTTPSRule"
   protocol                       = "Tcp"
@@ -104,7 +104,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_https_rule" {
 
 #LB Probe - Checks to see which VMs are healthy and available
 resource "azurerm_lb_probe" "agent_load_balancer_http_probe" {
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
   name                = "HTTP"
   port                = 80
@@ -112,7 +112,7 @@ resource "azurerm_lb_probe" "agent_load_balancer_http_probe" {
 
 #LB Probe - Checks to see which VMs are healthy and available
 resource "azurerm_lb_probe" "agent_load_balancer_https_probe" {
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
   name                = "HTTPS"
   port                = 443
@@ -123,7 +123,7 @@ resource "azurerm_lb_probe" "agent_load_balancer_https_probe" {
 resource "azurerm_network_security_group" "public_agent_security_group" {
     name = "${data.template_file.cluster-name.rendered}-public-agent-security-group"
     location = "${var.azure_region}"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
 
     tags {
       Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
@@ -141,7 +141,7 @@ resource "azurerm_network_security_rule" "public-agent-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -156,7 +156,7 @@ resource "azurerm_network_security_rule" "public-agent-httpRule" {
     destination_port_range      = "80"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -170,7 +170,7 @@ resource "azurerm_network_security_rule" "public-agent-httpsRule" {
     destination_port_range      = "443"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -184,7 +184,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeOne" {
     destination_port_range      = "0-21"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -198,7 +198,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeTwo" {
     destination_port_range      = "23-5050"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -212,7 +212,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeThree" {
     destination_port_range      = "5052-32000"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -226,7 +226,7 @@ resource "azurerm_network_security_rule" "public-agent-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 
@@ -240,7 +240,7 @@ resource "azurerm_network_security_rule" "public-agent-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
 }
 # End of Public Agent NIC Security Group
@@ -249,7 +249,7 @@ resource "azurerm_network_security_rule" "public-agent-everythingElseOutBound" {
 resource "azurerm_network_interface" "public_agent_nic" {
   name                      = "${data.template_file.cluster-name.rendered}-public-agent-${count.index}-nic"
   location                  = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.public_agent_security_group.id}"
   count                     = "${var.num_of_azure_public_agents}"
 
@@ -271,7 +271,7 @@ resource "azurerm_network_interface" "public_agent_nic" {
 resource "azurerm_availability_set" "public_agent_av_set" {
   name                         = "${data.template_file.cluster-name.rendered}-public-agent-avset"
   location                     = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 1
   managed                      = true
@@ -281,7 +281,7 @@ resource "azurerm_availability_set" "public_agent_av_set" {
 resource "azurerm_virtual_machine" "public-agent" {
     name                             = "${data.template_file.cluster-name.rendered}-public-agent-${count.index + 1}"
     location                         = "${var.azure_region}"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_interface_ids            = ["${azurerm_network_interface.public_agent_nic.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.public_agent_av_set.id}"
     vm_size                          = "${var.azure_public_agent_instance_type}"

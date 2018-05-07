@@ -22,7 +22,7 @@ resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-${data.template_file.cluster-name.rendered}"
   address_space       = ["10.32.0.0/16"]
   location            = "${var.azure_region}"
-  resource_group_name = "${azurerm_resource_group.dcos.name}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
 
   tags {
    Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
@@ -42,7 +42,7 @@ resource "azurerm_subnet" "private" {
   name                 = "private"
   address_prefix       = "10.32.4.0/22"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
-  resource_group_name  = "${azurerm_resource_group.dcos.name}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
 }
 
 
@@ -50,7 +50,7 @@ resource "azurerm_subnet" "private" {
 resource "azurerm_network_security_group" "public_subnet_security_group" {
     name = "${data.template_file.cluster-name.rendered}-master-security-group"
     location                 = "UK South"
-    resource_group_name      = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
 }
 
 # Public Subnet NSG Rule
@@ -64,7 +64,7 @@ resource "azurerm_network_security_rule" "public-subnet-httpRule" {
     destination_port_range      = "80"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_subnet_security_group.name}"
 }
 
@@ -79,6 +79,6 @@ resource "azurerm_network_security_rule" "public-subnet-httpsRule" {
     destination_port_range      = "443"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "hybrid-demo"
+    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_subnet_security_group.name}"
 }

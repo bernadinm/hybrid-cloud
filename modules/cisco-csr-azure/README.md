@@ -30,7 +30,7 @@ az vm image accept-terms --urn $urn
 or 
 
 ```
-az vm image accept-terms --urn "cisco:cisco-csr-1000v:csr-azure-byol:16.40.120170206"
+az vm image accept-terms --urn "cisco:cisco-csr-1000v:csr-azure-byol:latest"
 ```
 
 # Options

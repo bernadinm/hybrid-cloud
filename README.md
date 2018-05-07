@@ -69,6 +69,64 @@ EOF
 ```bash
 terraform apply -var-file desired_cluster_profile.tfvars
 ```
+
+## Notes
+
+AWS
+
+```
+conf t
+hostname CSR1
+end
+```
+
+Azure 
+
+```
+config t
+line vty 0 4
+exec-timeout 3 50
+end
+```
+
+```
+enable
+configure terminal
+crypto ikev2 profile default
+match identity remote fqdn domain {remotehostname}
+identity local fqdn {localhostname}
+authentication remote pre-share key cisco123
+authentication local pre-share key cisco123
+end
+```
+
+```
+interface Tunnel0
+ip address {private_ip} 255.255.255.252
+tunnel source GigabitEthernet1
+tunnel destination {Elastic IP of CSR2 on Azure}
+tunnel protection ipsec profile default
+```
+
+```
+crypto ikev2 dpd 10 2 on-demand
+```
+
+```
+router eigrp 1
+network {Private Subnet on AWS} 0.0.0.255
+network 172.16.0.0 0.0.0.255
+```
+
+
+# VERIFICATION
+
+```
+
+terminal monitor
+show crypto session
+```
+
 ### Destroy Cluster
 
 
