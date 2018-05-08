@@ -89,7 +89,7 @@ resource "azurerm_network_interface" "agent_nic" {
 
   ip_configuration {
    name                                    = "hybrid-cloud-${count.index}-ipConfig"
-   subnet_id                               = "/subscriptions/6bfddfe6-078b-4a9d-86ff-52e86464efe0/resourceGroups/hybrid-demo/providers/Microsoft.Network/virtualNetworks/hybridvnet/subnets/hybrid-csr-private"
+   subnet_id = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${element(azurerm_public_ip.agent_public_ip.*.id, count.index)}"
   }

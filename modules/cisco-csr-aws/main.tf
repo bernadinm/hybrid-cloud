@@ -30,7 +30,7 @@ data "aws_vpc" "current" {
 
 data "aws_route_table" "current" {
   vpc_id    = "${var.vpc_id}"
-  subnet_id = "${var.subnet_id}"
+  #subnet_id = "${var.subnet_id}"
 }
 
 resource "aws_route" "route" {

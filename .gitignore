@@ -62,6 +62,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# backup files
+*.bak
 
 ### Terraform ###
 # Terraform - https://terraform.io/
