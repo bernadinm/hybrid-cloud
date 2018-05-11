@@ -47,6 +47,3 @@ output "Public Agent ELB Address" {
   value = "${aws_elb.public-agent-elb.dns_name}"
 }
 
-output "Azure Public Agent ELB Address" {
-  value = "${azurerm_public_ip.public_agent_load_balancer_public_ip.fqdn}"
-}

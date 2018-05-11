@@ -1,6 +1,29 @@
+variable "num_of_azure_public_agents" {
+  default = "3"
+}
+
+variable "azure_public_agent_instance_type" {
+  description = "Azure DC/OS Private Agent instance type"
+  default = "Standard_DS11_v2"
+}
+
+variable "num_of_azure_private_agents" {
+  default = "3"
+}
+
+variable "azure_agent_instance_type" {
+  description = "Azure DC/OS Private Agent instance type"
+  default = "Standard_DS11_v2"
+}
+
+variable "azure_bootstrap_instance_type" {
+  description = "Azure DC/OS Bootstrap instance type"
+  default = "Standard_DS1_v2"
+}
+
 variable "azure_region" {
   description = "Azure region to launch servers."
-  default     = "UK South"
+  default     = "UK West"
 }
 
 variable "azure_admin_username" {

@@ -1,13 +1,8 @@
-variable "azure_bootstrap_instance_type" {
-  description = "Azure DC/OS Bootstrap instance type"
-  default = "Standard_DS1_v2"
-}
-
 # Bootstrap Node
 resource "azurerm_managed_disk" "bootstrap_managed_disk" {
   name                 = "${data.template_file.cluster-name.rendered}-bootstrap"
   location             = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name  = "${azurerm_resource_group.dcos.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
@@ -17,11 +12,12 @@ resource "azurerm_managed_disk" "bootstrap_managed_disk" {
 resource "azurerm_public_ip" "bootstrap_public_ip" {
   name                         = "${data.template_file.cluster-name.rendered}-bootstrap-pub-ip"
   location                     = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name          = "${azurerm_resource_group.dcos.name}"
   public_ip_address_allocation = "dynamic"
   domain_name_label = "${data.template_file.cluster-name.rendered}-bootstrap"
 
-  tags {
+  tags { 
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
   }
@@ -31,9 +27,10 @@ resource "azurerm_public_ip" "bootstrap_public_ip" {
 resource "azurerm_network_security_group" "bootstrap_security_group" {
     name = "${data.template_file.cluster-name.rendered}-bootstrap-security-group"
     location = "${var.azure_region}"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name = "${azurerm_resource_group.dcos.name}"
 
-    tags {
+    tags { 
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
       Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
       expiration = "${var.expiration}"
   }
@@ -49,7 +46,7 @@ resource "azurerm_network_security_rule" "bootstrap-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -64,7 +61,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpRule" {
     destination_port_range      = "80"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -78,7 +75,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpsRule" {
     destination_port_range      = "443"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -92,7 +89,7 @@ resource "azurerm_network_security_rule" "bootstrap-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -106,7 +103,7 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.bootstrap_security_group.name}"
 }
 
@@ -116,17 +113,18 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
 resource "azurerm_network_interface" "bootstrap_nic" {
   name                      = "${data.template_file.cluster-name.rendered}-bootstrap-nic"
   location                  = "${var.azure_region}"
-  resource_group_name  = "hybrid-demo"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.bootstrap_security_group.id}"
 
   ip_configuration {
    name                                    = "${data.template_file.cluster-name.rendered}-bootstrap-ipConfig"
-   subnet_id                               = "/subscriptions/6bfddfe6-078b-4a9d-86ff-52e86464efe0/resourceGroups/hybrid-demo/providers/Microsoft.Network/virtualNetworks/hybridvnet/subnets/hybrid-csr-private"
+   subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${azurerm_public_ip.bootstrap_public_ip.id}"
   }
 
-  tags {
+  tags { 
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
   }
@@ -136,7 +134,7 @@ resource "azurerm_network_interface" "bootstrap_nic" {
 resource "azurerm_virtual_machine" "bootstrap" {
     name                             = "${data.template_file.cluster-name.rendered}-bootstrap"
     location                         = "${var.azure_region}"
-    resource_group_name  = "hybrid-demo"
+    resource_group_name              = "${azurerm_resource_group.dcos.name}"
     network_interface_ids            = ["${azurerm_network_interface.bootstrap_nic.id}"]
     vm_size                          = "${var.azure_bootstrap_instance_type}"
     delete_os_disk_on_termination    = true
@@ -186,6 +184,8 @@ resource "azurerm_virtual_machine" "bootstrap" {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
     host = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
     }
  }
 
@@ -202,10 +202,13 @@ resource "azurerm_virtual_machine" "bootstrap" {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
     host = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
    }
  }
 
-  tags {
+  tags { 
+   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
  }
@@ -417,4 +420,7 @@ resource "null_resource" "azure-bootstrap" {
   lifecycle {
     ignore_changes = ["data.template_file.cluster-name.rendered"]
   }
+}
+output "Bootstrap Host Public IP" {
+  value = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
 }

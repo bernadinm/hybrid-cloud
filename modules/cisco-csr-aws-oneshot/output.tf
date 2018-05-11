@@ -3,21 +3,21 @@ output "cisco_csr_ami" {
 }
 
 output "destination_cidr" {
-  value = "${data.template_file.terraform-dcos-default-cidr.rendered}"
+  value = "${data.template_file.aws-terraform-dcos-default-cidr.rendered}"
 }
 
-output "public_ip_address" {
-  value = "${aws_eip.csr_public_ip.public_ip}"
+output "aws_public_ip_address" {
+  value = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
 }
 
-output "private_ip_address" {
+output "aws_private_ip_address" {
   value = "${aws_instance.cisco.private_ip}"
 }
 
-output "ssh_user" {
+output "aws_ssh_user" {
   value = "ec2-user"
 }
 
 output "aws_config_out" {
-  value = "${module.cisco_site_configuration.userdata}"
+  value = "${module.aws_csr_userdata.userdata}"
 }

@@ -1,18 +1,9 @@
-variable "num_of_azure_private_agents" {
-  default = "3"
-}
-
-variable "azure_agent_instance_type" {
-  description = "Azure DC/OS Private Agent instance type"
-  default = "Standard_DS11_v2"
-}
-
 # Private Agents
 resource "azurerm_managed_disk" "agent_managed_disk" {
   count                = "${var.num_of_azure_private_agents}"
   name                 = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
-  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   location             = "${var.azure_region}"
+  resource_group_name  = "${azurerm_resource_group.dcos.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
@@ -22,17 +13,27 @@ resource "azurerm_managed_disk" "agent_managed_disk" {
 resource "azurerm_public_ip" "agent_public_ip" {
   count                        = "${var.num_of_azure_private_agents}"
   name                         = "${data.template_file.cluster-name.rendered}-agent-pub-ip-${count.index + 1}"
-  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   location                     = "${var.azure_region}"
+  resource_group_name          = "${azurerm_resource_group.dcos.name}"
   public_ip_address_allocation = "dynamic"
-  domain_name_label            = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
+  domain_name_label = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
+
+  tags { 
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
+  }
 }
 
 # Agent Security Groups for NICs
 resource "azurerm_network_security_group" "agent_security_group" {
-    name = "hybrid-cloud-agent-security-group"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
-    location                    = "${var.azure_region}"
+    name = "${data.template_file.cluster-name.rendered}-agent-security-group"
+    location = "${var.azure_region}"
+    resource_group_name = "${azurerm_resource_group.dcos.name}"
+
+    tags { 
+      Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+      expiration = "${var.expiration}"
+  }
 }
 
 resource "azurerm_network_security_rule" "agent-sshRule" {
@@ -45,7 +46,7 @@ resource "azurerm_network_security_rule" "agent-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -60,7 +61,7 @@ resource "azurerm_network_security_rule" "agent-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 
@@ -74,7 +75,7 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
 }
 # End of Agent NIC Security Group
@@ -82,24 +83,29 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
 # Agent NICs with Security Group
 resource "azurerm_network_interface" "agent_nic" {
   name                      = "${data.template_file.cluster-name.rendered}-private-agent-${count.index}-nic"
-  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   location                  = "${var.azure_region}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.agent_security_group.id}"
   count                     = "${var.num_of_azure_private_agents}"
 
   ip_configuration {
-   name                                    = "hybrid-cloud-${count.index}-ipConfig"
-   subnet_id = "${azurerm_subnet.public.id}"
+   name                                    = "${data.template_file.cluster-name.rendered}-${count.index}-ipConfig"
+   subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${element(azurerm_public_ip.agent_public_ip.*.id, count.index)}"
+  }
+
+  tags { 
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
   }
 }
 
 # Create an availability set
 resource "azurerm_availability_set" "agent_av_set" {
   name                         = "${data.template_file.cluster-name.rendered}-agent-avset"
-  resource_group_name       = "${azurerm_resource_group.dcos.name}"
   location                     = "${var.azure_region}"
+  resource_group_name          = "${azurerm_resource_group.dcos.name}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 1
   managed                      = true
@@ -108,8 +114,8 @@ resource "azurerm_availability_set" "agent_av_set" {
 # Agent VM Coniguration
 resource "azurerm_virtual_machine" "agent" {
     name                             = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
     location                         = "${var.azure_region}"
+    resource_group_name              = "${azurerm_resource_group.dcos.name}"
     network_interface_ids            = ["${azurerm_network_interface.agent_nic.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.agent_av_set.id}"
     vm_size                          = "${var.azure_agent_instance_type}"
@@ -125,7 +131,7 @@ resource "azurerm_virtual_machine" "agent" {
   }
 
   storage_os_disk {
-    name              = "${data.template_file.cluster-name.rendered}-os-disk-agent-${count.index + 1}"
+    name              = "os-disk-agent-${count.index + 1}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -140,7 +146,7 @@ resource "azurerm_virtual_machine" "agent" {
   }
 
   os_profile {
-    computer_name  = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
+    computer_name  = "agent-${count.index + 1}"
     admin_username = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
   }
 
@@ -161,6 +167,8 @@ resource "azurerm_virtual_machine" "agent" {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
     host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
     }
  }
 
@@ -177,16 +185,34 @@ resource "azurerm_virtual_machine" "agent" {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
     host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
    }
+ }
+
+  tags { 
+   Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+   expiration = "${var.expiration}"
  }
 }
 
-resource "null_resource" "azure-agent" {
+# Create DCOS Mesos Agent Scripts to execute
+module "azure-dcos-mesos-agent" {
+  source               = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
+  bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
+  dcos_bootstrap_port  = "${var.custom_dcos_bootstrap_port}"
+  # Only allow upgrade and install as installation mode
+  dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
+  dcos_version         = "${var.dcos_version}"
+  role                 = "dcos-mesos-agent"
+}
+
+resource "null_resource" "agent" {
   # If state is set to none do not install DC/OS
   count = "${var.state == "none" ? 0 : var.num_of_azure_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
+    cluster_instance_ids = "${null_resource.bootstrap.id}"
     current_virtual_machine_id = "${azurerm_virtual_machine.agent.*.id[count.index]}"
   }
   # Bootstrap script can run on any instance of the cluster
@@ -194,6 +220,8 @@ resource "null_resource" "azure-agent" {
   connection {
     host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
+    private_key = "${local.private_key}"
+    agent = "${local.agent}"
   }
 
   count = "${var.num_of_azure_private_agents}"
@@ -207,7 +235,7 @@ resource "null_resource" "azure-agent" {
   # Wait for bootstrapnode to be ready
   provisioner "remote-exec" {
     inline = [
-     "until $(curl --output /dev/null --silent --head --fail http://${azurerm_network_interface.bootstrap_nic.private_ip_address}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
+     "until $(curl --output /dev/null --silent --head --fail http://${azurerm_network_interface.bootstrap_nic.private_ip_address}:${var.custom_dcos_bootstrap_port}/dcos_install.sh); do printf 'waiting for bootstrap node to serve...'; sleep 20; done"
     ]
   }
 
@@ -218,12 +246,8 @@ resource "null_resource" "azure-agent" {
       "sudo ./run.sh",
     ]
   }
+}
 
-  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
-  provisioner "remote-exec" {
-    inline = [
-     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo sed -i.bak '162 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
-    ]
-  }
+output "Private Agent Public IPs" {
+  value = ["${azurerm_public_ip.agent_public_ip.*.fqdn}"]
 }
