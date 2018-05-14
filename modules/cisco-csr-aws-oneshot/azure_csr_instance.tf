@@ -17,8 +17,14 @@ resource "azurerm_public_ip" "cisco" {
   name                         = "cisco-pip"
   location                     = "${data.azurerm_resource_group.rg.location}"
   resource_group_name          = "${data.azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Dynamic"
+  public_ip_address_allocation = "static"
   idle_timeout_in_minutes      = 30
+}
+
+data "azurerm_public_ip" "cisco" {
+  name                = "${azurerm_public_ip.cisco.name}"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
+  #depends_on = ["azurerm_public_ip.cisco"]
 }
 
 locals {
@@ -98,13 +104,14 @@ resource "azurerm_virtual_machine" "cisco" {
     }
 
 
+    depends_on = ["azurerm_public_ip.cisco"]
     network_interface_ids = ["${azurerm_network_interface.cisco_nic.id}"]
     primary_network_interface_id = "${azurerm_network_interface.cisco_nic.id}"
 }
 
 module "azure_csr_userdata" {
   source = "../cisco-config-generator"
-  public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.public_ip)}"
+  public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
   private_ip_local_site  = "${local.azure_csr_private_ip}"
   public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, aws_eip.csr.public_ip)}"
   private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.aws_csr_private_ip)}"
@@ -113,18 +120,13 @@ module "azure_csr_userdata" {
   local_hostname         = "${var.remote_hostname}"
 }
 
-data "azurerm_public_ip" "cisco" {
-  name                = "${azurerm_public_ip.cisco.name}"
-  resource_group_name = "${data.azurerm_resource_group.rg.name}"
-  depends_on          = ["azurerm_virtual_machine.cisco"]
-}
 
 output "azure_public_ip_address" {
-  value = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.public_ip)}"
+  value = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
 }
 
 output "azure_private_ip_address" {
-  value = "${azurerm_virtual_machine.cisco.private_ip}"
+  value = "${azurerm_network_interface.cisco_nic.private_ip_address}"
 }
 
 output "azure_ssh_user" {

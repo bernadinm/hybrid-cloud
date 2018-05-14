@@ -77,7 +77,7 @@ module "aws_csr_userdata" {
   source = "../cisco-config-generator"
   public_ip_local_site   = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
   private_ip_local_site  = "${local.aws_csr_private_ip}"
-  public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, azurerm_public_ip.cisco.public_ip)}"
+  public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
   private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.azure_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_local_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_remote_site}"
