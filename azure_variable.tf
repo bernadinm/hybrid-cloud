@@ -18,7 +18,7 @@ variable "azure_agent_instance_type" {
 
 variable "azure_bootstrap_instance_type" {
   description = "Azure DC/OS Bootstrap instance type"
-  default = "Standard_D2_v3"
+  default = "Standard_D4_v3"
 }
 
 variable "azure_region" {
