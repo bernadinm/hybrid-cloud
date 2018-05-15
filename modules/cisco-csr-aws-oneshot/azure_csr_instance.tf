@@ -7,8 +7,16 @@ data "azurerm_virtual_network" "current" {
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
 
+resource "azurerm_subnet" "public" {
+  name                 = "cisco-csr-subnet"
+  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
+  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+  address_prefix       = "${local.azure_csr_subnet_cidr_block}"
+  network_security_group_id  =  "${azurerm_network_security_group.cisco.id}"
+}
+
 data "azurerm_subnet" "public" {
-  name                 = "${data.azurerm_virtual_network.current.subnets[0]}"
+  name                 = "cisco-csr-subnet"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
 }
@@ -42,6 +50,12 @@ resource "azurerm_route_table" "RTPrivate" {
         address_prefix = "${coalesce(var.destination_cidr, data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
         next_hop_type = "VirtualAppliance"
         next_hop_in_ip_address = "${azurerm_network_interface.cisco_nic.private_ip_address}"
+    }
+
+    route {
+        name = "DefaultInternet"
+        address_prefix = "0.0.0.0/0"
+        next_hop_type = "Internet"
     }
 }
 
@@ -90,7 +104,7 @@ resource "azurerm_network_security_group" "cisco" {
         protocol = "*"
 		source_port_range = "*"
         destination_port_range = "*"
-        source_address_prefix = "${data.azurerm_resource_group.rg.address_prefix}"
+        source_address_prefix = "${data.azurerm_subnet.public.address_prefix}"
 		destination_address_prefix = "*"
     }
 }
@@ -105,7 +119,8 @@ resource "azurerm_network_interface" "cisco_nic" {
     ip_configuration {
         name = "cisco_nic"
         subnet_id = "${data.azurerm_subnet.public.id}"
-        private_ip_address_allocation = "dynamic"
+        private_ip_address_allocation = "static"
+        private_ip_address            = "${local.azure_csr_private_ip}"
         public_ip_address_id          = "${azurerm_public_ip.cisco.id}"
     }
     depends_on = ["azurerm_public_ip.cisco"]

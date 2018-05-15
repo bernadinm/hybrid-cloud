@@ -94,4 +94,3 @@ data "template_file" "aws-terraform-dcos-default-cidr" {
     cloud = "${var.remote_terraform_dcos_destination_provider}"
   }
 }
-

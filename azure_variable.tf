@@ -23,7 +23,7 @@ variable "azure_bootstrap_instance_type" {
 
 variable "azure_region" {
   description = "Azure region to launch servers."
-  default     = "UK West"
+  default     = "UK South"
 }
 
 variable "azure_admin_username" {
