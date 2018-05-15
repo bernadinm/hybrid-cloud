@@ -12,14 +12,14 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.azure_csr_subnet_cidr_block}"
-  network_security_group_id  =  "${azurerm_network_security_group.cisco.id}"
 }
 
-data "azurerm_subnet" "public" {
-  name                 = "cisco-csr-subnet"
-  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
-  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
-}
+#data "azurerm_subnet" "public" {
+#  name                 = "cisco-csr-subnet"
+#  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
+#  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+#  network_security_group_id  =  "${azurerm_network_security_group.cisco.id}"
+#}
 
 resource "azurerm_public_ip" "cisco" {
   name                         = "cisco-pip"
@@ -32,12 +32,11 @@ resource "azurerm_public_ip" "cisco" {
 data "azurerm_public_ip" "cisco" {
   name                = "${azurerm_public_ip.cisco.name}"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
-  #depends_on = ["azurerm_public_ip.cisco"]
 }
 
 locals {
-  azure_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.subnet_suffix_cidrblock))}"
-  azure_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_ip_address_suffix))}"
+  azure_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.subnet_suffix_cidrblock))}"
+  azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_ip_address_suffix))}"
 }
 
 resource "azurerm_route_table" "RTPrivate" {
@@ -104,7 +103,7 @@ resource "azurerm_network_security_group" "cisco" {
         protocol = "*"
 		source_port_range = "*"
         destination_port_range = "*"
-        source_address_prefix = "${data.azurerm_subnet.public.address_prefix}"
+        source_address_prefix = "${azurerm_subnet.public.address_prefix}"
 		destination_address_prefix = "*"
     }
 }
@@ -118,7 +117,7 @@ resource "azurerm_network_interface" "cisco_nic" {
 
     ip_configuration {
         name = "cisco_nic"
-        subnet_id = "${data.azurerm_subnet.public.id}"
+        subnet_id = "${azurerm_subnet.public.id}"
         private_ip_address_allocation = "static"
         private_ip_address            = "${local.azure_csr_private_ip}"
         public_ip_address_id          = "${azurerm_public_ip.cisco.id}"
