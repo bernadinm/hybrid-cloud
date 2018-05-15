@@ -8,8 +8,19 @@ module "aws_azure_cisco_vpn_connecter" {
   azure_region = "${var.azure_region}"
   vnet_name    = "${azurerm_virtual_network.vnet.name}"
   rg_name      = "${azurerm_resource_group.dcos.name}"
+  owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
+  expiration = "${var.expiration}"
 #  destination_cidr = "${azurerm_virtual_network.vnet.address_space[0]}"
 }
+
+output "aws_csr_instance_ip" {
+ value = ""
+}
+
+output "azure_csr_instance_ip" {
+ value = ""
+}
+
 
 #module "cisco_azure" {
 #  source = "modules/cisco-csr-azure"

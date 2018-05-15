@@ -8,6 +8,16 @@ variable "vnet_name" {
   default     = ""
 }
 
+variable "owner" {
+  description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack. Default is whoami. Can be overwritten by setting the value here"
+  default = ""
+}  
+
+variable "expiration" {
+  description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack"
+  default = "1h"
+}
+
 variable "azure_subnet_name" {
   description = "selected subnet chosen for Cisco CSR on an existing subnet"
   default     = ""
@@ -86,13 +96,13 @@ variable "public_ip_local_site" {
 #RENAME TO eip_id for the top level module
 variable "public_ip_remote_site" {
   description = "The public ip address of the remote site."
-  default     = "203.0.113.1"
+  default     = ""
 }
 
 #RECONSIDER Suffix behavior for the top level module
 variable "private_ip_remote_site" {
   description = "The private ip address of the remote site."
-  default     = "10.32.250.250"
+  default     = ""
 }
 
 variable "remote_pre_share_key" {

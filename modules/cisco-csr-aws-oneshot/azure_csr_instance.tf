@@ -45,6 +45,57 @@ resource "azurerm_route_table" "RTPrivate" {
     }
 }
 
+resource "azurerm_network_security_group" "cisco" {
+    name = "cisco_vpn_security_group"
+    location = "${var.azure_region}"
+    resource_group_name = "${data.azurerm_resource_group.rg.name}"
+    security_rule {
+        name = "AllowSSH"
+        priority = 100
+        direction = "Inbound"
+        access = "Allow"
+        protocol = "Tcp"
+		source_port_range = "*"
+        destination_port_range = "22"
+        source_address_prefix = "Internet"
+		destination_address_prefix = "*"
+    }
+    security_rule {
+        name = "AllowUDP500"
+        priority = 101
+        direction = "Inbound"
+        access = "Allow"
+        protocol = "Udp"
+		source_port_range = "*"
+        destination_port_range = "500"
+        source_address_prefix = "Internet"
+		destination_address_prefix = "*"
+    }
+    security_rule {
+        name = "AllowUDP4500"
+        priority = 102
+        direction = "Inbound"
+        access = "Allow"
+        protocol = "Udp"
+		source_port_range = "*"
+        destination_port_range = "4500"
+        source_address_prefix = "Internet"
+		destination_address_prefix = "*"
+    }
+    security_rule {
+        name = "AllowESP"
+        priority = 103
+        direction = "Inbound"
+        access = "Allow"
+        protocol = "*"
+		source_port_range = "*"
+        destination_port_range = "*"
+        source_address_prefix = "${data.azurerm_resource_group.rg.address_prefix}"
+		destination_address_prefix = "*"
+    }
+}
+
+
 resource "azurerm_network_interface" "cisco_nic" {
     name = "cisco_nic"
     location = "${var.azure_region}"
@@ -58,6 +109,7 @@ resource "azurerm_network_interface" "cisco_nic" {
         public_ip_address_id          = "${azurerm_public_ip.cisco.id}"
     }
     depends_on = ["azurerm_public_ip.cisco"]
+    network_security_group_id  =  "${azurerm_network_security_group.cisco.id}"
 }
 
 data "template_file" "azure-terraform-dcos-default-cidr" {
@@ -103,7 +155,10 @@ resource "azurerm_virtual_machine" "cisco" {
         disable_password_authentication = false
     }
 
-
+    tags {
+      Name = "${var.owner}"
+      expiration = "${var.expiration}"
+    }
     depends_on = ["azurerm_public_ip.cisco"]
     network_interface_ids = ["${azurerm_network_interface.cisco_nic.id}"]
     primary_network_interface_id = "${azurerm_network_interface.cisco_nic.id}"

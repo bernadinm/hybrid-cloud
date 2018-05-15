@@ -70,7 +70,10 @@ resource "aws_instance" "cisco" {
 
   tags {
     Name = "Cisco CSR VPN Router"
+    owner = "${var.owner}"
+    expiration = "${var.expiration}"
   }
+
 }
 
 module "aws_csr_userdata" {
