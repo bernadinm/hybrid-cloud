@@ -66,9 +66,14 @@ variable "destination_csr_public_ip" {
   default     = ""
 }
 
-variable "terraform_dcos_destination_provider" {
+variable "local_terraform_dcos_destination_provider" {
   description = "The CIDR block to route traffic too for the other Cisco CSR Router"
   default = "aws"
+}
+
+variable "remote_terraform_dcos_destination_provider" {
+  description = "The CIDR block to route traffic too for the other Cisco CSR Router"
+  default = "azure"
 }
 
 

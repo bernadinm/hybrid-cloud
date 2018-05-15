@@ -64,7 +64,7 @@ data "template_file" "azure-terraform-dcos-default-cidr" {
   template = "$${cloud == "aws" ? "10.0.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
 
   vars {
-    cloud = "${var.terraform_dcos_destination_provider}"
+    cloud = "${var.local_terraform_dcos_destination_provider}"
   }
 }
 
