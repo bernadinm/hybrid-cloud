@@ -13,12 +13,20 @@ module "aws_azure_cisco_vpn_connecter" {
 #  destination_cidr = "${azurerm_virtual_network.vnet.address_space[0]}"
 }
 
-output "aws_csr_instance_ip" {
- value = ""
+output "aws_config_out" {
+ value = "${module.aws_azure_cisco_vpn_connecter.aws_config_out}"
+}
+
+output "aws_public_ip_address" {
+ value = "${module.aws_azure_cisco_vpn_connecter.aws_public_ip_address}"
+}
+
+output "azure_public_ip_address" {
+ value = "${module.aws_azure_cisco_vpn_connecter.azure_public_ip_address}"
 }
 
 output "azure_csr_instance_ip" {
- value = ""
+ value = "${module.aws_azure_cisco_vpn_connecter.azure_config_out}"
 }
 
 

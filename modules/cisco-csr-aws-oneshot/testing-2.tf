@@ -1,20 +1,20 @@
 # Public IP addresses
-resource "azurerm_public_ip" "testing_public_ip" {
-  name                         = "oktesting"
+resource "azurerm_public_ip" "testing2_public_ip" {
+  name                         = "oktesting2"
   location                     = "${var.azure_region}"
   resource_group_name          = "${data.azurerm_resource_group.rg.name}"
   public_ip_address_allocation = "dynamic"
-  domain_name_label = "oktesting-123"
+  domain_name_label = "oktesting2-123"
 }
 
 # Agent Security Groups for NICs
-resource "azurerm_network_security_group" "testing_security_group" {
-  name                         = "oktesting"
+resource "azurerm_network_security_group" "testing2_security_group" {
+  name                         = "oktesting2"
     location = "${var.azure_region}"
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
 
-resource "azurerm_network_security_rule" "testing-sshRule" {
+resource "azurerm_network_security_rule" "testing2-sshRule" {
     name                        = "sshRule"
     priority                    = 100
     direction                   = "Inbound"
@@ -25,11 +25,11 @@ resource "azurerm_network_security_rule" "testing-sshRule" {
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
-    network_security_group_name = "${azurerm_network_security_group.testing_security_group.name}"
+    network_security_group_name = "${azurerm_network_security_group.testing2_security_group.name}"
 }
 
 
-resource "azurerm_network_security_rule" "testing-internalEverything" {
+resource "azurerm_network_security_rule" "testing2-internalEverything" {
     name                        = "allOtherInternalTraffric"
     priority                    = 160
     direction                   = "Inbound"
@@ -40,10 +40,10 @@ resource "azurerm_network_security_rule" "testing-internalEverything" {
     source_address_prefix       = "VirtualNetwork"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
-    network_security_group_name = "${azurerm_network_security_group.testing_security_group.name}"
+    network_security_group_name = "${azurerm_network_security_group.testing2_security_group.name}"
 }
 
-resource "azurerm_network_security_rule" "testing-everythingElseOutBound" {
+resource "azurerm_network_security_rule" "testing2-everythingElseOutBound" {
     name                        = "allOtherTrafficOutboundRule"
     priority                    = 170
     direction                   = "Outbound"
@@ -54,31 +54,31 @@ resource "azurerm_network_security_rule" "testing-everythingElseOutBound" {
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
-    network_security_group_name = "${azurerm_network_security_group.testing_security_group.name}"
+    network_security_group_name = "${azurerm_network_security_group.testing2_security_group.name}"
 }
 # End of Agent NIC Security Group
 
 # Agent NICs with Security Group
-resource "azurerm_network_interface" "testing_nic" {
-  name                      = "testing"
+resource "azurerm_network_interface" "testing2_nic" {
+  name                      = "testing2"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
-  network_security_group_id = "${azurerm_network_security_group.testing_security_group.id}"
+  network_security_group_id = "${azurerm_network_security_group.testing2_security_group.id}"
 
   ip_configuration {
-   name                                    = "testing_ipConfig"
+   name                                    = "testing2_ipConfig"
    subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "dynamic"
-   public_ip_address_id                    = "${azurerm_public_ip.testing_public_ip.id}"
+   public_ip_address_id                    = "${azurerm_public_ip.testing2_public_ip.id}"
   }
 }
 
 # Agent VM Coniguration
-resource "azurerm_virtual_machine" "testing" {
-    name                             = "testing-cisco"
+resource "azurerm_virtual_machine" "testing2" {
+    name                             = "testing2-cisco"
     location                         = "${var.azure_region}"
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
-    network_interface_ids            = ["${azurerm_network_interface.testing_nic.id}"]
+    network_interface_ids            = ["${azurerm_network_interface.testing2_nic.id}"]
     vm_size = "Standard_D2_v2"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
@@ -96,8 +96,21 @@ resource "azurerm_virtual_machine" "testing" {
         version = "latest"
     }
 
+#    plan {
+#        name = "csr-azure-byol"
+#        product = "cisco-csr-1000v"
+#        publisher = "cisco"
+#    }
+#    vm_size = "Standard_D2_v2"
+#    storage_image_reference {
+#        publisher = "cisco"
+#        offer = "cisco-csr-1000v"
+#        sku = "csr-azure-byol"
+#        version = "latest"
+#    }
+#
   storage_os_disk {
-    name              = "testing-disk-os"
+    name              = "testing2-disk-os"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -108,40 +121,32 @@ resource "azurerm_virtual_machine" "testing" {
         computer_name = "${var.remote_hostname}"
         admin_username = "${var.cisco_user}"
         admin_password = "${var.cisco_password}"
-        #custom_data = "enable-scp-server true"
+        #custom_data = "${module.azure_csr_userdata.userdata}"
     }
     os_profile_linux_config {
         disable_password_authentication = false
     }
 }
 
-data "template_file" "ssh-template" {
-   template = "${file("${path.module}/ssh-deploy-script.tpl")}"
-
-   vars {
-    cisco_commands = "${module.azure_csr_userdata.ssh_emulator}"
-    cisco_hostname = "${azurerm_public_ip.testing_public_ip.ip_address}"
-    cisco_password = "${var.cisco_password}"
-    cisco_user    = "${var.cisco_user}"
-   }
+resource "azurerm_virtual_machine_extension" "cisco" {
+  name                  = "cisco-vm-0-ext"
+  location              = "${data.azurerm_resource_group.rg.location}"
+  resource_group_name   = "${data.azurerm_resource_group.rg.name}"
+  virtual_machine_name  = "${azurerm_virtual_machine.cisco.name}"
+  publisher             = "Microsoft.OSTCExtensions"
+  type                  = "CustomScriptForLinux"
+  type_handler_version  = "1.2"
+  settings             = <<SETTINGS
+    {
+      "fileUris": [
+        ""
+      ],
+      "commmandToExecute": "enable-scp-server true"
+    }
+SETTINGS
 }
 
-resource "null_resource" "local-exec" {
-#  # Bootstrap script can run on any instance of the cluster
-#  # So we just choose the first in this case
-#  connection {
-#    host = "${azurerm_public_ip.testing_public_ip.ip_address}"
-#    user = "${var.cisco_user}"
-#    agent = "false"
-#    password = "${var.cisco_password}"
-#  }
-#
-#  # Wait for bootstrapnode to be ready
-  provisioner "local-exec" {
-      command = "${data.template_file.ssh-template.rendered}"
-   }
+output "testing2" {
+  value = ["${azurerm_public_ip.testing2_public_ip.*.fqdn}"]
 }
 
-output "testing" {
-  value = ["${azurerm_public_ip.testing_public_ip.*.fqdn}"]
-}

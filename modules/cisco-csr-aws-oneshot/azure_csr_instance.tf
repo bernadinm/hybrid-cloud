@@ -12,6 +12,7 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.azure_csr_subnet_cidr_block}"
+#  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
 }
 
 #data "azurerm_subnet" "public" {
@@ -190,18 +191,10 @@ module "azure_csr_userdata" {
 }
 
 
-output "azure_public_ip_address" {
-  value = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
-}
-
 output "azure_private_ip_address" {
   value = "${azurerm_network_interface.cisco_nic.private_ip_address}"
 }
 
 output "azure_ssh_user" {
   value = "${var.cisco_user}"
-}
-
-output "azure_config_out" {
-  value = "${module.azure_csr_userdata.userdata}"
 }

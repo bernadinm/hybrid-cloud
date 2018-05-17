@@ -10,6 +10,10 @@ output "aws_public_ip_address" {
   value = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
 }
 
+output "azure_public_ip_address" {
+  value = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
+}
+
 output "aws_private_ip_address" {
   value = "${aws_instance.cisco.private_ip}"
 }
@@ -20,4 +24,8 @@ output "aws_ssh_user" {
 
 output "aws_config_out" {
   value = "${module.aws_csr_userdata.userdata}"
+}
+
+output "azure_config_out" {
+  value = "${module.azure_csr_userdata.userdata}"
 }
