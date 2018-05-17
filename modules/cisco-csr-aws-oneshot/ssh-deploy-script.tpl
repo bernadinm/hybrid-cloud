@@ -14,7 +14,7 @@ EOL
 SSH_EXEC_SCRIPT=/tmp/ssh-exec
 cat > $${SSH_EXEC_SCRIPT} <<EOL
 #!/bin/sh
-export IFS='\n'; for line in \$(cat $${SSH_PAYLOAD}); do setsid ssh $${SSH_OPTIONS} ${cisco_user}@${cisco_hostname} "\$line"; done
+while read line; do setsid ssh $${SSH_OPTIONS} ${cisco_user}@${cisco_hostname} "\$line"; done < $${SSH_PAYLOAD}
 EOL
 chmod u+x $${SSH_EXEC_SCRIPT}
 sh $${SSH_EXEC_SCRIPT}
