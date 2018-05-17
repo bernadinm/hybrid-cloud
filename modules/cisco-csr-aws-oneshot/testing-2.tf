@@ -128,25 +128,6 @@ resource "azurerm_virtual_machine" "testing2" {
     }
 }
 
-resource "azurerm_virtual_machine_extension" "cisco" {
-  name                  = "cisco-vm-0-ext"
-  location              = "${data.azurerm_resource_group.rg.location}"
-  resource_group_name   = "${data.azurerm_resource_group.rg.name}"
-  virtual_machine_name  = "${azurerm_virtual_machine.cisco.name}"
-  publisher             = "Microsoft.OSTCExtensions"
-  type                  = "CustomScriptForLinux"
-  type_handler_version  = "1.2"
-  settings             = <<SETTINGS
-    {
-      "fileUris": [
-        ""
-      ],
-      "commmandToExecute": "enable-scp-server true"
-    }
-SETTINGS
-}
-
 output "testing2" {
   value = ["${azurerm_public_ip.testing2_public_ip.*.fqdn}"]
 }
-

@@ -1,4 +1,20 @@
-cat > test <<EOF
+SSH_ASKPASS_SCRIPT=/tmp/ssh-askpass-script
+SSH_PAYLOAD=/tmp/.payload.tmp
+cat > $${SSH_ASKPASS_SCRIPT} <<EOL
+#!/bin/bash
+echo "${cisco_password}"
+EOL
+chmod u+x $${SSH_ASKPASS_SCRIPT}
+export DISPLAY=:0
+export SSH_ASKPASS=$${SSH_ASKPASS_SCRIPT}
+SSH_OPTIONS="-oLogLevel=error -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+cat > $${SSH_PAYLOAD} <<EOL
 ${cisco_commands}
-EOF
-IFS=$'\n'; for i in $(cat test); do expect -c "spawn ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${cisco_user}@${cisco_hostname} \"$${i}\"; expect \"Password:\"; send \"${cisco_password}\r\"; interact"; done
+EOL
+SSH_EXEC_SCRIPT=/tmp/ssh-exec
+cat > $${SSH_EXEC_SCRIPT} <<EOL
+#!/bin/sh
+export IFS='\n'; for line in \$(cat $${SSH_PAYLOAD}); do setsid ssh $${SSH_OPTIONS} ${cisco_user}@${cisco_hostname} "\$line"; done
+EOL
+chmod u+x $${SSH_EXEC_SCRIPT}
+sh $${SSH_EXEC_SCRIPT}

@@ -3,7 +3,7 @@ resource "azurerm_public_ip" "testing_public_ip" {
   name                         = "oktesting"
   location                     = "${var.azure_region}"
   resource_group_name          = "${data.azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "dynamic"
+  public_ip_address_allocation = "static"
   domain_name_label = "oktesting-123"
 }
 
@@ -115,7 +115,7 @@ resource "azurerm_virtual_machine" "testing" {
     }
 }
 
-data "template_file" "ssh-template" {
+data "template_file" "ssh_template" {
    template = "${file("${path.module}/ssh-deploy-script.tpl")}"
 
    vars {
@@ -138,7 +138,7 @@ resource "null_resource" "local-exec" {
 #
 #  # Wait for bootstrapnode to be ready
   provisioner "local-exec" {
-      command = "${data.template_file.ssh-template.rendered}"
+      command = "${data.template_file.ssh_template.rendered}"
    }
 }
 
