@@ -33,6 +33,10 @@ or
 az vm image accept-terms --urn "cisco:cisco-csr-1000v:csr-azure-byol:latest"
 ```
 
+```
+az vm image accept-terms --urn "cisco:cisco-csr-1000v:csr-azure-byol:16.40.120170206"
+```
+
 # Options
 
 This module supports a number of configuration options:

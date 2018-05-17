@@ -10,6 +10,8 @@ module "aws_azure_cisco_vpn_connecter" {
   rg_name      = "${azurerm_resource_group.dcos.name}"
   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
   expiration = "${var.expiration}"
+  docker_utility_node = "${aws_instance.bootstrap.public_ip}"
+  docker_utility_node_username = "${module.aws-tested-oses.user}"
 }
 
 output "aws_config_out" {

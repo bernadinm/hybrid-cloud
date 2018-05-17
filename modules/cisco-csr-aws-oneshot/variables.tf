@@ -8,6 +8,16 @@ variable "vnet_name" {
   default     = ""
 }
 
+variable "docker_utility_node" {
+  description = "The IP address of the utility node."
+  default     = ""
+}
+
+variable "docker_utility_node_username" {
+  description = "The username of the utility node"
+  default     = ""
+}
+
 variable "owner" {
   description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack. Default is whoami. Can be overwritten by setting the value here"
   default = ""
