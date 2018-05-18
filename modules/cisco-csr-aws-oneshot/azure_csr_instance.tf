@@ -106,11 +106,11 @@ resource "azurerm_network_interface" "cisco_nic" {
   network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
 
   ip_configuration {
+   primary                                 = "true"
    name                                    = "cisco_ipConfig"
    subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${azurerm_public_ip.cisco.id}"
-   primary                                 = "true"
   }
 }
 
@@ -134,6 +134,7 @@ resource "azurerm_virtual_machine" "cisco" {
     name                             = "cisco-csr"
     location                         = "${var.azure_region}"
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
+    primary_network_interface_id     = "${azurerm_network_interface.cisco_nic.id}"
     network_interface_ids            = ["${azurerm_network_interface.cisco_nic.id}", "${azurerm_network_interface.cisco_nic_2.id}"]
     vm_size = "Standard_D2_v2"
     delete_os_disk_on_termination    = true
