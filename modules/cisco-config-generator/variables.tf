@@ -2,6 +2,7 @@ variable "public_ip_local_site" {}
 variable "private_ip_local_site" {}
 variable "public_ip_remote_site" {}
 variable "private_ip_remote_site" {}
+variable "private_ip_cidr_remote_site" {}
 
 variable "remote_pre_share_key" {
   default = "cisco123"

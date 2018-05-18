@@ -15,4 +15,4 @@ tunnel protection ipsec profile default
 crypto ikev2 dpd 10 2 on-demand
 int gi2
 no shut
-ip route ${private_ip_remote_site} 255.255.0.0 ${tunnel_ip_remote_site}
+ip route ${private_ip_cidr_remote_site} 255.255.255.240 ${tunnel_ip_remote_site}

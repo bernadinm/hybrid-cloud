@@ -54,16 +54,29 @@ resource "aws_eip" "csr" {
 
 resource "aws_eip_association" "csr" {
   allocation_id = "${aws_eip.csr.id}"
-  instance_id   = "${aws_instance.cisco.id}"
+  #instance_id   = "${aws_instance.cisco.id}"
+  network_interface_id = "${aws_network_interface.csr.id}"
+}
+
+resource "aws_network_interface" "csr" {
+  subnet_id       = "${aws_subnet.reserved_vpn.id}"
+  private_ips      = ["${local.aws_csr_private_ip}"]
+  security_groups = ["${aws_security_group.sg_g1_csr1000v.id}"]
+  source_dest_check = "false"
+
+  attachment {
+    instance     = "${aws_instance.cisco.id}"
+    device_index = 1
+  }
 }
 
 resource "aws_instance" "cisco" {
   ami                         = "${data.aws_ami_ids.cisco_csr.ids[0]}"
   instance_type               = "${var.aws_instance_type}"
   subnet_id                   = "${aws_subnet.reserved_vpn.id}"
-  private_ip                  = "${local.aws_csr_private_ip}"
+#  private_ip                  = "${local.aws_csr_private_ip}"
   associate_public_ip_address = true
-  source_dest_check           = false
+  source_dest_check           = "false"
   key_name                    = "${var.ssh_key_name}"
   vpc_security_group_ids      = ["${aws_security_group.sg_g1_csr1000v.id}"]
   user_data                   = "${module.aws_csr_userdata.userdata}"
@@ -73,13 +86,13 @@ resource "aws_instance" "cisco" {
     owner = "${var.owner}"
     expiration = "${var.expiration}"
   }
-
 }
 
 module "aws_csr_userdata" {
   source = "../cisco-config-generator"
   public_ip_local_site   = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
   private_ip_local_site  = "${local.aws_csr_private_ip}"
+  private_ip_cidr_remote_site  = "${element(split("/",local.aws_csr_subnet_cidr_block),0)}"
   public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
   private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.azure_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_local_site}"

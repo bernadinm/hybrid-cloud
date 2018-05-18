@@ -108,9 +108,23 @@ resource "azurerm_network_interface" "cisco_nic" {
   ip_configuration {
    name                                    = "cisco_ipConfig"
    subnet_id                               = "${azurerm_subnet.public.id}"
+   private_ip_address_allocation           = "dynamic"
+   public_ip_address_id                    = "${azurerm_public_ip.cisco.id}"
+  }
+}
+
+# Agent NICs with Security Group
+resource "azurerm_network_interface" "cisco_nic_2" {
+  name                      = "cisco-nic-2"
+  location                  = "${var.azure_region}"
+  resource_group_name       = "${data.azurerm_resource_group.rg.name}"
+  network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
+
+  ip_configuration {
+   name                                    = "cisco_ipConfig2"
+   subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "static"
    private_ip_address                      = "${local.azure_csr_private_ip}"
-   public_ip_address_id                    = "${azurerm_public_ip.cisco.id}"
   }
 }
 
@@ -119,7 +133,7 @@ resource "azurerm_virtual_machine" "cisco" {
     name                             = "cisco-csr"
     location                         = "${var.azure_region}"
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
-    network_interface_ids            = ["${azurerm_network_interface.cisco_nic.id}"]
+    network_interface_ids            = ["${azurerm_network_interface.cisco_nic.id}", "${azurerm_network_interface.cisco_nic_2.id}"]
     vm_size = "Standard_D2_v2"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
@@ -176,6 +190,7 @@ module "azure_csr_userdata" {
   source = "../cisco-config-generator"
   public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
   private_ip_local_site  = "${local.azure_csr_private_ip}"
+  private_ip_cidr_remote_site  = "${element(split("/", local.azure_csr_subnet_cidr_block), 0)}"
   public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, aws_eip.csr.public_ip)}"
   private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.aws_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_remote_site}"
@@ -186,6 +201,7 @@ module "azure_csr_userdata" {
 resource "null_resource" "ssh_deploy" {
   triggers {
     cisco_ids = "${azurerm_virtual_machine.cisco.id}"
+    instruction = "${data.template_file.ssh_template.rendered}"
   }
   connection {
     host = "${var.docker_utility_node}"
