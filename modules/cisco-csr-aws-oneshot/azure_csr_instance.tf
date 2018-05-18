@@ -21,6 +21,25 @@ locals {
   azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_ip_address_suffix))}"
 }
 
+resource "azurerm_route_table" "RTPrivate" {
+    name = "cisco_vpn_route_table"
+    location = "${var.azure_region}"
+    resource_group_name = "${data.azurerm_resource_group.rg.name}"
+
+    route {
+        name = "CiscoRouter"
+        address_prefix = "${coalesce(var.destination_cidr, data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
+        next_hop_type = "VirtualAppliance"
+        next_hop_in_ip_address = "${azurerm_network_interface.cisco_nic.private_ip_address}"
+    }
+
+    route {
+        name = "DefaultInternet"
+        address_prefix = "0.0.0.0/0"
+        next_hop_type = "Internet"
+    }
+}
+
 resource "azurerm_public_ip" "cisco" {
   name                         = "cisco-pip"
   location                     = "${var.azure_region}"
@@ -89,7 +108,8 @@ resource "azurerm_network_interface" "cisco_nic" {
   ip_configuration {
    name                                    = "cisco_ipConfig"
    subnet_id                               = "${azurerm_subnet.public.id}"
-   private_ip_address_allocation           = "dynamic"
+   private_ip_address_allocation           = "static"
+   private_ip_address                      = "${local.azure_csr_private_ip}"
    public_ip_address_id                    = "${azurerm_public_ip.cisco.id}"
   }
 }
