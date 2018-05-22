@@ -59,6 +59,11 @@ resource "aws_route" "route" {
   instance_id               = "${aws_instance.cisco.id}"
 }
 
+resource "aws_route_table_association" "a" {
+  subnet_id      = "${aws_subnet.public_reserved_vpn.id}"
+  route_table_id = "${data.aws_route_table.current.id}"
+}
+
 resource "aws_eip" "csr" {
   vpc = true
 }

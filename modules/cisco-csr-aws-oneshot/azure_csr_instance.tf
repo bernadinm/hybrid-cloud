@@ -12,6 +12,7 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+  route_table_id       = "${data.azurerm_route_table.RTPublic.id}"
 #  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
 }
 
@@ -31,7 +32,7 @@ locals {
   private_azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_subnet_private_ip_address_suffix))}"
 }
 
-resource "azurerm_route_table" "RTPrivate" {
+resource "azurerm_route_table" "RTPublic" {
     name = "cisco_vpn_route_table"
     location = "${var.azure_region}"
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
@@ -48,6 +49,12 @@ resource "azurerm_route_table" "RTPrivate" {
         address_prefix = "0.0.0.0/0"
         next_hop_type = "Internet"
     }
+}
+
+data "azurerm_route_table" "RTPublic" {
+  name = "cisco_vpn_route_table"
+  #name = "${azurerm_route_table.RTPublic.name}"
+  resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
 
 resource "azurerm_public_ip" "cisco" {
