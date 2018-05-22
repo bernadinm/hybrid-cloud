@@ -8,17 +8,27 @@ data "azurerm_virtual_network" "current" {
 }
 
 resource "azurerm_subnet" "public" {
-  name                 = "cisco-csr-subnet"
+  name                 = "cisco-csr-subnet-public"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
-  address_prefix       = "${local.azure_csr_subnet_cidr_block}"
+  address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+#  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
+}
+
+resource "azurerm_subnet" "private" {
+  name                 = "cisco-csr-subnet-private"
+  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
+  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+  address_prefix       = "${local.private_azure_csr_subnet_cidr_block}"
 #  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
 }
 
 # Public IP addresses
 locals {
-  azure_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.subnet_suffix_cidrblock))}"
-  azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_ip_address_suffix))}"
+  public_azure_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.public_subnet_subnet_suffix_cidrblock))}"
+  public_azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.public_subnet_private_ip_address_suffix))}"
+  private_azure_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_subnet_subnet_suffix_cidrblock))}"
+  private_azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_subnet_private_ip_address_suffix))}"
 }
 
 resource "azurerm_route_table" "RTPrivate" {
@@ -30,7 +40,7 @@ resource "azurerm_route_table" "RTPrivate" {
         name = "CiscoRouter"
         address_prefix = "${coalesce(var.destination_cidr, data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
         next_hop_type = "VirtualAppliance"
-        next_hop_in_ip_address = "${azurerm_network_interface.cisco_nic.private_ip_address}"
+        next_hop_in_ip_address = "${azurerm_network_interface.cisco_nic_0.private_ip_address}"
     }
 
     route {
@@ -99,33 +109,34 @@ resource "azurerm_network_security_rule" "cisco_everythingElseOutBound" {
 # End of Agent NIC Security Group
 
 # Agent NICs with Security Group
-resource "azurerm_network_interface" "cisco_nic" {
-  name                      = "cisco-nic"
+resource "azurerm_network_interface" "cisco_nic_0" {
+  name                      = "cisco-nic-0"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
 
   ip_configuration {
    primary                                 = "true"
-   name                                    = "cisco_ipConfig"
+   name                                    = "cisco_ipConfig-0"
    subnet_id                               = "${azurerm_subnet.public.id}"
-   private_ip_address_allocation           = "dynamic"
+   private_ip_address_allocation           = "static"
+   private_ip_address                      = "${local.public_azure_csr_private_ip}"
    public_ip_address_id                    = "${azurerm_public_ip.cisco.id}"
   }
 }
 
 # Agent NICs with Security Group
-resource "azurerm_network_interface" "cisco_nic_2" {
-  name                      = "cisco-nic-2"
+resource "azurerm_network_interface" "cisco_nic_1" {
+  name                      = "cisco-nic-1"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
 
   ip_configuration {
-   name                                    = "cisco_ipConfig2"
-   subnet_id                               = "${azurerm_subnet.public.id}"
+   name                                    = "cisco_ipConfig-1"
+   subnet_id                               = "${azurerm_subnet.private.id}"
    private_ip_address_allocation           = "static"
-   private_ip_address                      = "${local.azure_csr_private_ip}"
+   private_ip_address                      = "${local.private_azure_csr_private_ip}"
   }
 }
 
@@ -134,8 +145,8 @@ resource "azurerm_virtual_machine" "cisco" {
     name                             = "cisco-csr"
     location                         = "${var.azure_region}"
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
-    primary_network_interface_id     = "${azurerm_network_interface.cisco_nic.id}"
-    network_interface_ids            = ["${azurerm_network_interface.cisco_nic.id}", "${azurerm_network_interface.cisco_nic_2.id}"]
+    primary_network_interface_id     = "${azurerm_network_interface.cisco_nic_0.id}"
+    network_interface_ids            = ["${azurerm_network_interface.cisco_nic_0.id}", "${azurerm_network_interface.cisco_nic_1.id}"]
     vm_size = "Standard_D2_v2"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
@@ -190,11 +201,15 @@ output "cisco" {
 
 module "azure_csr_userdata" {
   source = "../cisco-config-generator"
-  public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
-  private_ip_local_site  = "${local.azure_csr_private_ip}"
-  private_ip_cidr_remote_site  = "${element(split("/", local.azure_csr_subnet_cidr_block), 0)}"
-  public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, aws_eip.csr.public_ip)}"
-  private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.aws_csr_private_ip)}"
+  #public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
+  public_subnet_private_ip_local_site  = "${local.public_azure_csr_private_ip}"
+  public_subnet_private_ip_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
+  private_subnet_private_ip_local_site  = "${local.private_azure_csr_private_ip}"
+  private_subnet_private_ip_network_mask = "${cidrnetmask(local.private_azure_csr_subnet_cidr_block)}"
+  public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
+  public_subnet_private_ip_cidr_remote_site  = "${element(split("/", local.public_azure_csr_subnet_cidr_block), 0)}"
+  public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, aws_eip.csr.public_ip)}"
+  #private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.aws_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_remote_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_local_site}"
   local_hostname         = "${var.remote_hostname}"
@@ -224,7 +239,7 @@ resource "null_resource" "ssh_deploy" {
 }
 
 output "azure_private_ip_address" {
-  value = "${azurerm_network_interface.cisco_nic.private_ip_address}"
+  value = "${azurerm_network_interface.cisco_nic_0.private_ip_address}"
 }
 
 output "azure_ssh_user" {

@@ -66,14 +66,24 @@ variable "aws_profile" {
   default = ""
 }
 
-variable "private_ip_address_suffix" {
+variable "public_subnet_private_ip_address_suffix" {
   description = "Cisco CSR reserved ip address within existing VNet/VPC. i.e X.X.250.250"
   default = "250.250"
 }
 
-variable "subnet_suffix_cidrblock" {
+variable "public_subnet_subnet_suffix_cidrblock" {
   description = "Cisco CSR reserved subnet address cidr block within existing VNet/VPC. i.e X.X.250.240/28"
   default = "250.240/28"
+}
+
+variable "private_subnet_private_ip_address_suffix" {
+  description = "Cisco CSR reserved ip address within existing VNet/VPC. i.e X.X.250.250"
+  default = "250.230"
+}
+
+variable "private_subnet_subnet_suffix_cidrblock" {
+  description = "Cisco CSR reserved subnet address cidr block within existing VNet/VPC. i.e X.X.250.240/28"
+  default = "250.224/28"
 }
 
 variable "destination_cidr" {
@@ -96,22 +106,25 @@ variable "remote_terraform_dcos_destination_provider" {
   default = "azure"
 }
 
-
 #RENAME TO eip_id for the top level module
 variable "public_ip_local_site" { 
   description = "The elastic ip address of the local site. If none is provided, one will be created."
   default     = ""
 }
 
-#RENAME TO eip_id for the top level module
-variable "public_ip_remote_site" {
-  description = "The public ip address of the remote site."
+variable "public_subnet_private_ip_local_site" {
+  description = "The elastic ip address of the local site. If none is provided, one will be created."
   default     = ""
 }
 
-#RECONSIDER Suffix behavior for the top level module
-variable "private_ip_remote_site" {
-  description = "The private ip address of the remote site."
+variable "private_subnet_private_ip_local_site" {
+  description = "The elastic ip address of the local site. If none is provided, one will be created."
+  default     = ""
+}
+
+#RENAME TO eip_id for the top level module
+variable "public_subnet_public_ip_remote_site" {
+  description = "The public ip address of the remote site."
   default     = ""
 }
 

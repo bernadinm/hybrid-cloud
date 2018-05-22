@@ -29,13 +29,20 @@ data "aws_vpc" "current" {
 }
 
 locals {
-  aws_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.subnet_suffix_cidrblock))}"
-  aws_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_ip_address_suffix))}"
+  public_aws_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.public_subnet_subnet_suffix_cidrblock))}"
+  public_aws_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.public_subnet_private_ip_address_suffix))}"
+  private_aws_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_subnet_subnet_suffix_cidrblock))}"
+  private_aws_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_subnet_private_ip_address_suffix))}"
 }
 
-resource "aws_subnet" "reserved_vpn" {
+resource "aws_subnet" "public_reserved_vpn" {
   vpc_id     = "${data.aws_vpc.current.id}"
-  cidr_block = "${local.aws_csr_subnet_cidr_block}"
+  cidr_block = "${local.public_aws_csr_subnet_cidr_block}"
+}
+
+resource "aws_subnet" "private_reserved_vpn" {
+  vpc_id     = "${data.aws_vpc.current.id}"
+  cidr_block = "${local.private_aws_csr_subnet_cidr_block}"
 }
 
 data "aws_route_table" "current" {
@@ -59,8 +66,8 @@ resource "aws_eip_association" "csr" {
 }
 
 resource "aws_network_interface" "csr" {
-  subnet_id       = "${aws_subnet.reserved_vpn.id}"
-  private_ips      = ["${local.aws_csr_private_ip}"]
+  subnet_id       = "${aws_subnet.private_reserved_vpn.id}"
+  private_ips      = ["${local.private_aws_csr_private_ip}"]
   security_groups = ["${aws_security_group.sg_g1_csr1000v.id}"]
   source_dest_check = "false"
 
@@ -73,8 +80,8 @@ resource "aws_network_interface" "csr" {
 resource "aws_instance" "cisco" {
   ami                         = "${data.aws_ami_ids.cisco_csr.ids[0]}"
   instance_type               = "${var.aws_instance_type}"
-  subnet_id                   = "${aws_subnet.reserved_vpn.id}"
-#  private_ip                  = "${local.aws_csr_private_ip}"
+  subnet_id                   = "${aws_subnet.public_reserved_vpn.id}"
+  private_ip                  = "${local.public_aws_csr_private_ip}"
   associate_public_ip_address = true
   source_dest_check           = "false"
   key_name                    = "${var.ssh_key_name}"
@@ -90,11 +97,15 @@ resource "aws_instance" "cisco" {
 
 module "aws_csr_userdata" {
   source = "../cisco-config-generator"
-  public_ip_local_site   = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
-  private_ip_local_site  = "${local.aws_csr_private_ip}"
-  private_ip_cidr_remote_site  = "${element(split("/",local.aws_csr_subnet_cidr_block),0)}"
-  public_ip_remote_site  = "${coalesce(var.public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
-  private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.azure_csr_private_ip)}"
+  #public_ip_local_site   = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
+  public_subnet_private_ip_local_site  = "${local.public_aws_csr_private_ip}"
+  public_subnet_private_ip_network_mask = "${cidrnetmask(local.public_aws_csr_subnet_cidr_block)}"
+  private_subnet_private_ip_local_site  = "${local.private_aws_csr_private_ip}"
+  private_subnet_private_ip_network_mask = "${cidrnetmask(local.private_aws_csr_subnet_cidr_block)}"
+  public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(local.public_aws_csr_subnet_cidr_block)}"
+  public_subnet_private_ip_cidr_remote_site  = "${element(split("/", local.public_aws_csr_subnet_cidr_block),0)}"
+  public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
+  #private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.azure_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_local_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_remote_site}"
   local_hostname         = "${var.local_hostname}"

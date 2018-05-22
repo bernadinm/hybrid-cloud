@@ -27,5 +27,5 @@ output "aws_config_out" {
 }
 
 output "azure_config_out" {
-  value = "${module.azure_csr_userdata.userdata}"
+  value = "${module.azure_csr_userdata.ssh_emulator}"
 }
