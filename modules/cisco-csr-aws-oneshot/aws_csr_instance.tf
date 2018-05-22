@@ -4,6 +4,8 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+data "aws_availability_zones" "available" {}
+
 data "aws_ami_ids" "cisco_csr" {
   # Retrieves the AMI within the region that the VPC is created
   # Cost: It takes roughly ~50 seconds to perform this query of the ami
@@ -38,11 +40,13 @@ locals {
 resource "aws_subnet" "public_reserved_vpn" {
   vpc_id     = "${data.aws_vpc.current.id}"
   cidr_block = "${local.public_aws_csr_subnet_cidr_block}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
 }
 
 resource "aws_subnet" "private_reserved_vpn" {
   vpc_id     = "${data.aws_vpc.current.id}"
   cidr_block = "${local.private_aws_csr_subnet_cidr_block}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
 }
 
 data "aws_route_table" "current" {
@@ -61,8 +65,7 @@ resource "aws_eip" "csr" {
 
 resource "aws_eip_association" "csr" {
   allocation_id = "${aws_eip.csr.id}"
-  #instance_id   = "${aws_instance.cisco.id}"
-  network_interface_id = "${aws_network_interface.csr.id}"
+  instance_id   = "${aws_instance.cisco.id}"
 }
 
 resource "aws_network_interface" "csr" {
