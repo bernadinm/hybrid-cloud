@@ -79,6 +79,48 @@ resource "azurerm_network_security_rule" "cisco_sshRule" {
 }
 
 
+resource "azurerm_network_security_rule" "cisco_udp500" {
+    name                        = "cisco_udp_500"
+    priority                    = 110
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Udp"
+    source_port_range           = "*"
+    destination_port_range      = "500"
+    source_address_prefix       = "Internet"
+    destination_address_prefix  = "*"
+    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
+    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
+}
+
+resource "azurerm_network_security_rule" "cisco_udp4500" {
+    name                        = "cisco_udp_4500"
+    priority                    = 120
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "Udp"
+    source_port_range           = "*"
+    destination_port_range      = "4500"
+    source_address_prefix       = "Internet"
+    destination_address_prefix  = "*"
+    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
+    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
+}
+
+resource "azurerm_network_security_rule" "cisco_esp" {
+    name                        = "cisco_esp"
+    priority                    = 130
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "*"
+    source_port_range           = "*"
+    destination_port_range      = "*"
+    source_address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+    destination_address_prefix  = "*"
+    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
+    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
+}
+
 resource "azurerm_network_security_rule" "cisco_internalEverything" {
     name                        = "allOtherInternalTraffric"
     priority                    = 160
