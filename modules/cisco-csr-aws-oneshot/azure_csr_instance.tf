@@ -12,8 +12,7 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
-  route_table_id       = "${data.azurerm_route_table.RTPublic.id}"
-#  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
+  route_table_id       = "${azurerm_route_table.RTPublic.id}"
 }
 
 resource "azurerm_subnet" "private" {
@@ -21,7 +20,6 @@ resource "azurerm_subnet" "private" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.private_azure_csr_subnet_cidr_block}"
-#  network_security_group_id = "${azurerm_network_security_group.cisco.id}"
 }
 
 # Public IP addresses
@@ -41,7 +39,7 @@ resource "azurerm_route_table" "RTPublic" {
         name = "CiscoRouter"
         address_prefix = "${coalesce(var.destination_cidr, data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
         next_hop_type = "VirtualAppliance"
-        next_hop_in_ip_address = "${azurerm_network_interface.cisco_nic_0.private_ip_address}"
+        next_hop_in_ip_address = "${local.public_azure_csr_private_ip}"
     }
 
     route {
@@ -49,11 +47,6 @@ resource "azurerm_route_table" "RTPublic" {
         address_prefix = "0.0.0.0/0"
         next_hop_type = "Internet"
     }
-}
-
-data "azurerm_route_table" "RTPublic" {
-  name = "cisco_vpn_route_table"
-  resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
 
 resource "azurerm_public_ip" "cisco" {
@@ -249,15 +242,12 @@ output "cisco" {
 
 module "azure_csr_userdata" {
   source = "../cisco-config-generator"
-  #public_ip_local_site   = "${coalesce(var.public_ip_local_site, azurerm_public_ip.cisco.ip_address)}"
   public_subnet_private_ip_local_site  = "${local.public_azure_csr_private_ip}"
   public_subnet_private_ip_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
   private_subnet_private_ip_local_site  = "${local.private_azure_csr_private_ip}"
   private_subnet_private_ip_network_mask = "${cidrnetmask(local.private_azure_csr_subnet_cidr_block)}"
   public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
   public_subnet_private_ip_cidr_remote_site  = "${element(split("/", local.public_azure_csr_subnet_cidr_block), 0)}"
-  public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, aws_eip.csr.public_ip)}"
-  #private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.aws_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_remote_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_local_site}"
   local_hostname         = "${var.remote_hostname}"
