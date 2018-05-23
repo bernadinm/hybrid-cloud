@@ -94,12 +94,51 @@ resource "aws_instance" "cisco" {
   source_dest_check           = "false"
   key_name                    = "${var.ssh_key_name}"
   vpc_security_group_ids      = ["${aws_security_group.sg_g1_csr1000v.id}"]
-  user_data                   = "${module.aws_csr_userdata.userdata}"
+  #user_data                   = "${module.aws_csr_userdata.userdata}"
+  user_data                   = <<CONFIG
+ios-config-1="username ${var.cisco_user} privilege 15 password ${var.cisco_password}"
+ios-config-2="ip domain lookup"
+ios-config-3="ip domain name cisco.com"
+CONFIG
 
   tags {
     Name = "Cisco CSR VPN Router"
     owner = "${var.owner}"
     expiration = "${var.expiration}"
+  }
+}
+
+data "template_file" "aws_ssh_template" {
+   template = "${file("${path.module}/ssh-deploy-script.tpl")}"
+
+   vars {
+    cisco_commands = "${module.aws_csr_userdata.userdata_ssh_emulator}"
+    cisco_hostname = "${local.public_aws_csr_private_ip}"
+    cisco_password = "${var.cisco_password}"
+    cisco_user    = "${var.cisco_user}"
+   }
+}
+
+resource "null_resource" "aws_ssh_deploy" {
+  triggers {
+    cisco_ids = "aws_instance.cisco.id}"
+    instruction = "${data.template_file.aws_ssh_template.rendered}"
+  }
+  connection {
+    host = "${var.docker_utility_node}"
+    user = "${var.docker_utility_node_username}"
+  }
+
+  provisioner "file" {
+    content     = "${data.template_file.aws_ssh_template.rendered}"
+    destination = "aws-cisco-config.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x aws-cisco-config.sh",
+      "sudo ./aws-cisco-config.sh"
+    ]
   }
 }
 

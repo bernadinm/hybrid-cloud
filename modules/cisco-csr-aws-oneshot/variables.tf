@@ -151,12 +151,12 @@ variable "remote_hostname" {
 
 variable "cisco_user" {
   description = "Default Linux User for login"
-  default     = "ec2-user"
+  default     = ""
 }
 
 variable "cisco_password" {
   description = "Default linux Password for login"
-  default     = "secureP@ssword"
+  default     = ""
 }
 
 variable "ssh_key_name" {

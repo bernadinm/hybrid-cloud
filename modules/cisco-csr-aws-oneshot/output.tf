@@ -22,8 +22,16 @@ output "aws_ssh_user" {
   value = "ec2-user"
 }
 
-output "aws_config_out" {
+output "aws_userdata_out" {
   value = "${module.aws_csr_userdata.userdata}"
+}
+
+output "azure_userdata_out" {
+  value = "${module.azure_csr_userdata.userdata}"
+}
+
+output "aws_config_out" {
+  value = "${module.aws_csr_userdata.userdata_ssh_emulator}"
 }
 
 output "azure_config_out" {

@@ -53,7 +53,6 @@ resource "azurerm_route_table" "RTPublic" {
 
 data "azurerm_route_table" "RTPublic" {
   name = "cisco_vpn_route_table"
-  #name = "${azurerm_route_table.RTPublic.name}"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
 
@@ -233,7 +232,7 @@ resource "azurerm_virtual_machine" "cisco" {
     }
 }
 
-data "template_file" "ssh_template" {
+data "template_file" "azure_ssh_template" {
    template = "${file("${path.module}/ssh-deploy-script.tpl")}"
 
    vars {
@@ -264,10 +263,10 @@ module "azure_csr_userdata" {
   local_hostname         = "${var.remote_hostname}"
 }
 
-resource "null_resource" "ssh_deploy" {
+resource "null_resource" "azure_ssh_deploy" {
   triggers {
     cisco_ids = "${azurerm_virtual_machine.cisco.id}"
-    instruction = "${data.template_file.ssh_template.rendered}"
+    instruction = "${data.template_file.azure_ssh_template.rendered}"
   }
   connection {
     host = "${var.docker_utility_node}"
@@ -275,14 +274,14 @@ resource "null_resource" "ssh_deploy" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.ssh_template.rendered}"
-    destination = "cisco-config.sh"
+    content     = "${data.template_file.azure_ssh_template.rendered}"
+    destination = "azure-cisco-config.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x cisco-config.sh",
-      "sudo ./cisco-config.sh",
+      "sudo chmod +x azure-cisco-config.sh",
+      "sudo ./azure-cisco-config.sh"
     ]
   }
 }

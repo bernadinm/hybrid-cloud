@@ -1,3 +1,6 @@
+variable "cisco_user" { default = "cisco" }
+variable "cisco_password" { default = "ch@ngem3" }
+
 module "aws_azure_cisco_vpn_connecter" {
   source = "modules/cisco-csr-aws-oneshot"
   vpc_id = "${aws_vpc.default.id}"
@@ -12,6 +15,8 @@ module "aws_azure_cisco_vpn_connecter" {
   expiration = "${var.expiration}"
   docker_utility_node = "${aws_instance.bootstrap.public_ip}"
   docker_utility_node_username = "${module.aws-tested-oses.user}"
+  cisco_user = "${var.cisco_user}"
+  cisco_password = "${var.cisco_password}"
 }
 
 output "aws_config_out" {
@@ -26,6 +31,6 @@ output "azure_public_ip_address" {
  value = "${module.aws_azure_cisco_vpn_connecter.azure_public_ip_address}"
 }
 
-output "azure_csr_instance_ip" {
+output "azure_config_out" {
  value = "${module.aws_azure_cisco_vpn_connecter.azure_config_out}"
 }
