@@ -15,6 +15,12 @@ resource "aws_security_group" "sg_g1_csr1000v" {
         cidr_blocks = ["${data.aws_vpc.current.cidr_block}"]
     }
     ingress {
+        from_port = 0
+        to_port = 0
+        protocol = "50"
+        cidr_blocks = ["${local.public_azure_csr_subnet_cidr_block}"]
+    }
+    ingress {
         from_port = 500
         to_port = 500
         protocol = "udp"

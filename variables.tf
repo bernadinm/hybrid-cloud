@@ -97,7 +97,7 @@ variable "owner" {
 
 variable "expiration" {
   description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack"
-  default = "1h"
+  default = "2d"
 }
 
 variable "ip-detect" {

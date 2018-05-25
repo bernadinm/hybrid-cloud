@@ -120,6 +120,20 @@ resource "azurerm_network_security_rule" "cisco_esp" {
     network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
 }
 
+resource "azurerm_network_security_rule" "cisco_AWSEverything" {
+    name                        = "allOtherInternalTraffricFromAWS"
+    priority                    = 140
+    direction                   = "Inbound"
+    access                      = "Allow"
+    protocol                    = "*"
+    source_port_range           = "*"
+    destination_port_range      = "*"
+    source_address_prefix       = "${local.public_aws_csr_subnet_cidr_block}"
+    destination_address_prefix  = "*"
+    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
+    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
+}
+
 resource "azurerm_network_security_rule" "cisco_internalEverything" {
     name                        = "allOtherInternalTraffric"
     priority                    = 160
@@ -246,8 +260,9 @@ module "azure_csr_userdata" {
   public_subnet_private_ip_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
   private_subnet_private_ip_local_site  = "${local.private_azure_csr_private_ip}"
   private_subnet_private_ip_network_mask = "${cidrnetmask(local.private_azure_csr_subnet_cidr_block)}"
-  public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(local.public_azure_csr_subnet_cidr_block)}"
-  public_subnet_private_ip_cidr_remote_site  = "${element(split("/", local.public_azure_csr_subnet_cidr_block), 0)}"
+  public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
+  public_subnet_private_ip_cidr_remote_site  = "${element(split("/", data.template_file.azure-terraform-dcos-default-cidr.rendered), 0)}"
+  public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, aws_eip.csr.public_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_remote_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_local_site}"
   local_hostname         = "${var.remote_hostname}"
