@@ -12,13 +12,7 @@ resource "aws_security_group" "sg_g1_csr1000v" {
         from_port = 0
         to_port = 0
         protocol = "50"
-        cidr_blocks = ["${data.aws_vpc.current.cidr_block}"]
-    }
-    ingress {
-        from_port = 0
-        to_port = 0
-        protocol = "50"
-        cidr_blocks = ["${local.public_azure_csr_subnet_cidr_block}"]
+        cidr_blocks = ["10.0.0.0/8"]
     }
     ingress {
         from_port = 500

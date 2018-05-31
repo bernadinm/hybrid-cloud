@@ -114,7 +114,7 @@ resource "azurerm_network_security_rule" "cisco_esp" {
     protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
-    source_address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+    source_address_prefix       = "10.0.0.0/8"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
     network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
@@ -128,7 +128,7 @@ resource "azurerm_network_security_rule" "cisco_AWSEverything" {
     protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
-    source_address_prefix       = "${local.public_aws_csr_subnet_cidr_block}"
+    source_address_prefix       = "10.0.0.0/8"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
     network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
@@ -142,7 +142,7 @@ resource "azurerm_network_security_rule" "cisco_internalEverything" {
     protocol                    = "Tcp"
     source_port_range           = "*"
     destination_port_range      = "*"
-    source_address_prefix       = "VirtualNetwork"
+    source_address_prefix       = "10.0.0.0/8"
     destination_address_prefix  = "*"
     resource_group_name         = "${data.azurerm_resource_group.rg.name}"
     network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
@@ -207,7 +207,7 @@ resource "azurerm_virtual_machine" "cisco" {
     delete_data_disks_on_termination = true
 
     plan {
-        name = "csr-azure-byol"
+        name = "16_5"
         product = "cisco-csr-1000v"
         publisher = "cisco"
     }
@@ -215,8 +215,8 @@ resource "azurerm_virtual_machine" "cisco" {
     storage_image_reference {
         publisher = "cisco"
         offer = "cisco-csr-1000v"
-        sku = "csr-azure-byol"
-        version = "16.40.120170206"
+        sku = "16_5"
+        version = "latest"
     }
 
 

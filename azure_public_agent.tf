@@ -215,7 +215,7 @@ resource "azurerm_network_security_rule" "public-agent-internalEverything" {
     protocol                    = "Tcp"
     source_port_range           = "*"
     destination_port_range      = "*"
-    source_address_prefix       = "VirtualNetwork"
+    source_address_prefix       = "10.0.0.0/8"
     destination_address_prefix  = "*"
     resource_group_name         = "${azurerm_resource_group.dcos.name}"
     network_security_group_name = "${azurerm_network_security_group.public_agent_security_group.name}"
