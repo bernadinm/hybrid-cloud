@@ -31,7 +31,7 @@ variable "admin_cidr" {
 }
 
 variable "os" {
-  default = "coreos_1235.9.0"
+  default = "coreos_1576.5.0"
   description = "Recommended DC/OS OSs are centos_7.2, coreos_1235.9.0, coreos_835.13.0"
 }
 
