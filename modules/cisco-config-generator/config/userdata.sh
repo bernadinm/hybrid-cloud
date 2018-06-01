@@ -1,6 +1,6 @@
 hostname="${local_hostname}"
 ios-config-1="line vty 0 4"
-ios-config-2="exec-timeout 3 50"
+ios-config-2="exec-timeout 0 0"
 ios-config-3="crypto ikev2 profile default"
 ios-config-4="match identity remote fqdn domain cisco.com"
 ios-config-5="identity local fqdn ${local_hostname}.cisco.com"

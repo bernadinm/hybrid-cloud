@@ -3,7 +3,7 @@ hostname ${hostname_site_one}
 end
 config t
 line vty 0 4
-exec-timeout 3 50
+exec-timeout 0 0
 end
 enable
 configure terminal
