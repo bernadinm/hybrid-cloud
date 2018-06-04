@@ -121,7 +121,7 @@ data "template_file" "aws_ssh_template" {
 
 resource "null_resource" "aws_ssh_deploy" {
   triggers {
-    cisco_ids = "aws_instance.cisco.id}"
+    cisco_ids = "${aws_instance.cisco.id}"
     instruction = "${data.template_file.aws_ssh_template.rendered}"
   }
   connection {
