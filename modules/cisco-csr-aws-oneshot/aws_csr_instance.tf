@@ -94,7 +94,6 @@ resource "aws_instance" "cisco" {
   source_dest_check           = "false"
   key_name                    = "${var.ssh_key_name}"
   vpc_security_group_ids      = ["${aws_security_group.sg_g1_csr1000v.id}"]
-  #user_data                   = "${module.aws_csr_userdata.userdata}"
   user_data                   = <<CONFIG
 ios-config-1="username ${var.cisco_user} privilege 15 password ${var.cisco_password}"
 ios-config-2="ip domain lookup"
@@ -144,7 +143,6 @@ resource "null_resource" "aws_ssh_deploy" {
 
 module "aws_csr_userdata" {
   source = "../cisco-config-generator"
-  #public_ip_local_site   = "${coalesce(var.public_ip_local_site, aws_eip.csr.public_ip)}"
   public_subnet_private_ip_local_site  = "${local.public_aws_csr_private_ip}"
   public_subnet_private_ip_network_mask = "${cidrnetmask(local.public_aws_csr_subnet_cidr_block)}"
   private_subnet_private_ip_local_site  = "${local.private_aws_csr_private_ip}"
@@ -152,7 +150,6 @@ module "aws_csr_userdata" {
   public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(data.template_file.aws-terraform-dcos-default-cidr.rendered)}"
   public_subnet_private_ip_cidr_remote_site  = "${element(split("/", data.template_file.aws-terraform-dcos-default-cidr.rendered),0)}"
   public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
-  #private_ip_remote_site = "${coalesce(var.private_ip_remote_site, local.azure_csr_private_ip)}"
   tunnel_ip_local_site   = "${var.tunnel_ip_local_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_remote_site}"
   local_hostname         = "${var.local_hostname}"
