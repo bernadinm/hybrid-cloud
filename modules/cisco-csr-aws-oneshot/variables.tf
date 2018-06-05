@@ -8,12 +8,22 @@ variable "vnet_name" {
   default     = ""
 }
 
-variable "docker_utility_node" {
+variable "aws_docker_utility_node" {
   description = "The IP address of the utility node."
   default     = ""
 }
 
-variable "docker_utility_node_username" {
+variable "aws_docker_utility_node_username" {
+  description = "The username of the utility node"
+  default     = ""
+}
+
+variable "azure_docker_utility_node" {
+  description = "The IP address of the utility node."
+  default     = ""
+}
+
+variable "azure_docker_utility_node_username" {
   description = "The username of the utility node"
   default     = ""
 }

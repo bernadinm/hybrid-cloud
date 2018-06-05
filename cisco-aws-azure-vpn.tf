@@ -13,8 +13,10 @@ module "aws_azure_cisco_vpn_connecter" {
   rg_name      = "${azurerm_resource_group.dcos.name}"
   owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
   expiration = "${var.expiration}"
-  docker_utility_node = "${aws_instance.bootstrap.public_ip}"
-  docker_utility_node_username = "${module.aws-tested-oses.user}"
+  aws_docker_utility_node = "${aws_instance.bootstrap.public_ip}"
+  aws_docker_utility_node_username = "${module.aws-tested-oses.user}"
+  azure_docker_utility_node = "${azurerm_public_ip.bootstrap_public_ip.fqdn}"
+  azure_docker_utility_node_username = "${module.azure-tested-oses.user}"
   cisco_user = "${var.cisco_user}"
   cisco_password = "${var.cisco_password}"
 }
@@ -33,4 +35,11 @@ output "azure_public_ip_address" {
 
 output "azure_config_out" {
  value = "${module.aws_azure_cisco_vpn_connecter.azure_config_out}"
+}
+
+output "tmp" {
+ value = "${module.aws_azure_cisco_vpn_connecter.tmp}"
+}
+output "snd" {
+ value = "${module.aws_azure_cisco_vpn_connecter.snd}"
 }

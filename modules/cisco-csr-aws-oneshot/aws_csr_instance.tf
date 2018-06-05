@@ -113,7 +113,7 @@ data "template_file" "aws_ssh_template" {
 
    vars {
     cisco_commands = "${module.aws_csr_userdata.userdata_ssh_emulator}"
-    cisco_hostname = "${local.public_aws_csr_private_ip}"
+    cisco_hostname = "${aws_eip.csr.public_ip}"
     cisco_password = "${var.cisco_password}"
     cisco_user    = "${var.cisco_user}"
    }
@@ -125,8 +125,8 @@ resource "null_resource" "aws_ssh_deploy" {
     instruction = "${data.template_file.aws_ssh_template.rendered}"
   }
   connection {
-    host = "${var.docker_utility_node}"
-    user = "${var.docker_utility_node_username}"
+    host = "${var.aws_docker_utility_node}"
+    user = "${var.aws_docker_utility_node_username}"
   }
 
   provisioner "file" {
