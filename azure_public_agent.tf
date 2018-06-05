@@ -242,6 +242,7 @@ resource "azurerm_network_interface" "public_agent_nic" {
   location                  = "${var.azure_region}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.public_agent_security_group.id}"
+  enable_ip_forwarding      = "true"
   count                     = "${var.num_of_azure_public_agents}"
 
   ip_configuration {

@@ -12,14 +12,22 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
-  route_table_id       = "${azurerm_route_table.RTPublic.id}"
 }
+
+#data "azurerm_subnet" "public" {
+#  name                 = "cisco-csr-subnet-public"
+#  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
+#  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
+##  address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+#  route_table_id       = "${azurerm_route_table.private.id}"
+#}
 
 resource "azurerm_subnet" "private" {
   name                 = "cisco-csr-subnet-private"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.private_azure_csr_subnet_cidr_block}"
+  route_table_id       = "${azurerm_route_table.private.id}"
 }
 
 # Public IP addresses
@@ -30,8 +38,8 @@ locals {
   private_azure_csr_private_ip = "${join(".", list(element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),0), element(split(".", data.azurerm_virtual_network.current.address_spaces[0]),1), var.private_subnet_private_ip_address_suffix))}"
 }
 
-resource "azurerm_route_table" "RTPublic" {
-    name = "cisco_vpn_route_table"
+resource "azurerm_route_table" "private" {
+    name = "private_cisco_vpn_route_table"
     location = "${var.azure_region}"
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
 
@@ -39,13 +47,7 @@ resource "azurerm_route_table" "RTPublic" {
         name = "CiscoRouter"
         address_prefix = "${coalesce(var.destination_cidr, data.template_file.azure-terraform-dcos-default-cidr.rendered)}"
         next_hop_type = "VirtualAppliance"
-        next_hop_in_ip_address = "${local.public_azure_csr_private_ip}"
-    }
-
-    route {
-        name = "DefaultInternet"
-        address_prefix = "0.0.0.0/0"
-        next_hop_type = "Internet"
+        next_hop_in_ip_address = "${local.private_azure_csr_private_ip}"
     }
 }
 
@@ -169,6 +171,7 @@ resource "azurerm_network_interface" "cisco_nic_0" {
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
+  enable_ip_forwarding      = "true"
 
   ip_configuration {
    primary                                 = "true"
@@ -185,7 +188,7 @@ resource "azurerm_network_interface" "cisco_nic_1" {
   name                      = "cisco-nic-1"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
-  network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
+  enable_ip_forwarding      = "true"
 
   ip_configuration {
    name                                    = "cisco_ipConfig-1"
@@ -254,6 +257,136 @@ output "cisco" {
   value = ["${azurerm_public_ip.cisco.*.ip_address}"]
 }
 
+resource "azurerm_public_ip" "tmp" {
+  name                         = "tmp-pip"
+  location                     = "${var.azure_region}"
+  resource_group_name          = "${data.azurerm_resource_group.rg.name}"
+  public_ip_address_allocation = "static"
+}
+
+# Agent NICs with Security Group
+resource "azurerm_network_interface" "tmp_nic_0" {
+  name                      = "temp-nic-0"
+  location                  = "${var.azure_region}"
+  resource_group_name       = "${data.azurerm_resource_group.rg.name}"
+  network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
+
+  ip_configuration {
+   primary                                 = "true"
+   name                                    = "tmp_ipConfig-0"
+   subnet_id                               = "${azurerm_subnet.public.id}"
+   private_ip_address_allocation           = "dynamic"
+   public_ip_address_id                    = "${azurerm_public_ip.tmp.id}"
+  }
+}
+
+# Agent VM Coniguration
+resource "azurerm_virtual_machine" "tmp" {
+    name                             = "tmp-csr"
+    location                         = "${var.azure_region}"
+    resource_group_name              = "${data.azurerm_resource_group.rg.name}"
+    primary_network_interface_id     = "${azurerm_network_interface.tmp_nic_0.id}"
+    network_interface_ids            = ["${azurerm_network_interface.tmp_nic_0.id}"]
+    vm_size = "Standard_D2_v2"
+    delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
+
+    vm_size = "Standard_D2_v2"
+    storage_image_reference {
+        publisher = "OpenLogic"
+        offer = "Centos"
+        sku = "7.4"
+        version = "latest"
+    }
+
+
+  storage_os_disk {
+    name              = "tmp_disk-os"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+    delete_os_disk_on_termination = true
+    os_profile {
+        computer_name = "${var.remote_hostname}"
+        admin_username = "${var.cisco_user}"
+        admin_password = "${var.cisco_password}"
+    }
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+}
+
+# Agent NICs with Security Group
+resource "azurerm_network_interface" "second_subnet_nic_0" {
+  name                      = "second_subnet-nic-0"
+  location                  = "${var.azure_region}"
+  resource_group_name       = "${data.azurerm_resource_group.rg.name}"
+  network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
+
+  ip_configuration {
+   primary                                 = "true"
+   name                                    = "second_ipConfig-0"
+   subnet_id                               = "${azurerm_subnet.private.id}"
+   private_ip_address_allocation           = "dynamic"
+   public_ip_address_id                    = "${azurerm_public_ip.snd.id}"
+  }
+}
+
+resource "azurerm_public_ip" "snd" {
+  name                         = "snd-pip"
+  location                     = "${var.azure_region}"
+  resource_group_name          = "${data.azurerm_resource_group.rg.name}"
+  public_ip_address_allocation = "static"
+}
+
+# Agent VM Coniguration
+resource "azurerm_virtual_machine" "snd" {
+    name                             = "snd-subnet-csr"
+    location                         = "${var.azure_region}"
+    resource_group_name              = "${data.azurerm_resource_group.rg.name}"
+    primary_network_interface_id     = "${azurerm_network_interface.second_subnet_nic_0.id}"
+    network_interface_ids            = ["${azurerm_network_interface.second_subnet_nic_0.id}"]
+    vm_size = "Standard_D2_v2"
+    delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
+
+    vm_size = "Standard_D2_v2"
+    storage_image_reference {
+        publisher = "OpenLogic"
+        offer = "Centos"
+        sku = "7.4"
+        version = "latest"
+    }
+
+
+  storage_os_disk {
+    name              = "snd_disk-os"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+    delete_os_disk_on_termination = true
+    os_profile {
+        computer_name = "${var.remote_hostname}"
+        admin_username = "${var.cisco_user}"
+        admin_password = "${var.cisco_password}"
+    }
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+}
+
+output "tmp" {
+  value = ["${azurerm_public_ip.tmp.*.ip_address}"]
+}
+
+output "snd" {
+  value = ["${azurerm_public_ip.snd.*.ip_address}"]
+}
+
 module "azure_csr_userdata" {
   source = "../cisco-config-generator"
   public_subnet_private_ip_local_site  = "${local.public_azure_csr_private_ip}"
@@ -274,8 +407,8 @@ resource "null_resource" "azure_ssh_deploy" {
     instruction = "${data.template_file.azure_ssh_template.rendered}"
   }
   connection {
-    host = "${var.docker_utility_node}"
-    user = "${var.docker_utility_node_username}"
+    host = "${var.azure_docker_utility_node}"
+    user = "${var.azure_docker_utility_node_username}"
   }
 
   provisioner "file" {
