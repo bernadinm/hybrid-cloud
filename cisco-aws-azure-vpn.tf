@@ -36,10 +36,3 @@ output "azure_public_ip_address" {
 output "azure_config_out" {
  value = "${module.aws_azure_cisco_vpn_connecter.azure_config_out}"
 }
-
-output "tmp" {
- value = "${module.aws_azure_cisco_vpn_connecter.tmp}"
-}
-output "snd" {
- value = "${module.aws_azure_cisco_vpn_connecter.snd}"
-}
