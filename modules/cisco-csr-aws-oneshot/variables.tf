@@ -153,10 +153,10 @@ variable "tunnel_ip_remote_site" {
   default = "172.16.0.2"
 }
 variable "local_hostname" {
-  default = "CSR1"
+  default = "aws-csr"
 }
 variable "remote_hostname" {
-  default = "CSR2"
+  default = "azure-csr"
 }
 
 variable "cisco_user" {
