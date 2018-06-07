@@ -1,3 +1,4 @@
+variable "public_gateway_ip" { default = ""}
 variable "public_subnet_private_ip_local_site" {}
 variable "public_subnet_public_ip_remote_site" {}
 variable "public_subnet_private_ip_network_mask" {}
