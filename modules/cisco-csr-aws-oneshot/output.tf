@@ -34,6 +34,10 @@ output "aws_config_out" {
   value = "${module.aws_csr_userdata.userdata_ssh_emulator}"
 }
 
+output "private_azure_csr_private_ip" {
+  value = "${local.private_azure_csr_private_ip}"
+}
+
 output "azure_config_out" {
   value = "${module.azure_csr_userdata.ssh_emulator}"
 }

@@ -24,6 +24,7 @@ resource "azurerm_public_ip" "agent_public_ip" {
   }
 }
 
+
 # Agent Security Groups for NICs
 resource "azurerm_network_security_group" "agent_security_group" {
     name = "${data.template_file.cluster-name.rendered}-agent-security-group"

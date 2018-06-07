@@ -14,14 +14,6 @@ resource "azurerm_subnet" "public" {
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
 }
 
-#data "azurerm_subnet" "public" {
-#  name                 = "cisco-csr-subnet-public"
-#  virtual_network_name = "${data.azurerm_virtual_network.current.name}"
-#  resource_group_name  = "${data.azurerm_resource_group.rg.name}"
-##  address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
-#  route_table_id       = "${azurerm_route_table.private.id}"
-#}
-
 resource "azurerm_subnet" "private" {
   name                 = "cisco-csr-subnet-private"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
@@ -114,34 +106,6 @@ resource "azurerm_network_security_rule" "cisco_esp" {
     direction                   = "Inbound"
     access                      = "Allow"
     protocol                    = "*"
-    source_port_range           = "*"
-    destination_port_range      = "*"
-    source_address_prefix       = "10.0.0.0/8"
-    destination_address_prefix  = "*"
-    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
-    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
-}
-
-resource "azurerm_network_security_rule" "cisco_AWSEverything" {
-    name                        = "allOtherInternalTraffricFromAWS"
-    priority                    = 140
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "*"
-    source_port_range           = "*"
-    destination_port_range      = "*"
-    source_address_prefix       = "10.0.0.0/8"
-    destination_address_prefix  = "*"
-    resource_group_name         = "${data.azurerm_resource_group.rg.name}"
-    network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
-}
-
-resource "azurerm_network_security_rule" "cisco_internalEverything" {
-    name                        = "allOtherInternalTraffric"
-    priority                    = 160
-    direction                   = "Inbound"
-    access                      = "Allow"
-    protocol                    = "Tcp"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
