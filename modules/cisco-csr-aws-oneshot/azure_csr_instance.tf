@@ -12,6 +12,7 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
+  route_table_id       = "${azurerm_route_table.private.id}"
 }
 
 resource "azurerm_subnet" "private" {
@@ -19,7 +20,6 @@ resource "azurerm_subnet" "private" {
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.private_azure_csr_subnet_cidr_block}"
-  route_table_id       = "${azurerm_route_table.private.id}"
 }
 
 # Public IP addresses
