@@ -1,5 +1,5 @@
-variable "cisco_user" { default = "cisco" }
-variable "cisco_password" { default = "ch@ngem3" }
+variable "cisco_user" { default = "mesosphere" }
+variable "cisco_password" { default = "MesosphereR0cks" }
 
 module "aws_azure_cisco_vpn_connecter" {
   source = "modules/cisco-csr-aws-oneshot"
@@ -23,6 +23,10 @@ module "aws_azure_cisco_vpn_connecter" {
 
 output "aws_config_out" {
  value = "${module.aws_azure_cisco_vpn_connecter.aws_config_out}"
+}
+
+output "private_azure_csr_private_ip" {
+ value = "${module.aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
 }
 
 output "aws_public_ip_address" {
