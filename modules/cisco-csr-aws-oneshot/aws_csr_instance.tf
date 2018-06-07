@@ -35,6 +35,7 @@ locals {
   public_aws_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.public_subnet_private_ip_address_suffix))}"
   private_aws_csr_subnet_cidr_block = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_subnet_subnet_suffix_cidrblock))}"
   private_aws_csr_private_ip = "${join(".", list(element(split(".", data.aws_vpc.current.cidr_block),0), element(split(".", data.aws_vpc.current.cidr_block),1), var.private_subnet_private_ip_address_suffix))}"
+  public_aws_csr_gateway_ip = "${cidrhost(local.public_aws_csr_subnet_cidr_block, 1)}"
 }
 
 resource "aws_subnet" "public_reserved_vpn" {
@@ -56,7 +57,7 @@ data "aws_route_table" "current" {
 resource "aws_route" "route" {
   route_table_id            = "${data.aws_route_table.current.id}"
   destination_cidr_block    = "${coalesce(var.destination_cidr, data.template_file.aws-terraform-dcos-default-cidr.rendered)}"
-  instance_id               = "${aws_instance.cisco.id}"
+  network_interface_id      = "${aws_instance.cisco.primary_network_interface_id}"
 }
 
 resource "aws_route_table_association" "a" {
@@ -150,6 +151,7 @@ module "aws_csr_userdata" {
   public_subnet_private_ip_cidr_remote_site_network_mask = "${cidrnetmask(data.template_file.aws-terraform-dcos-default-cidr.rendered)}"
   public_subnet_private_ip_cidr_remote_site  = "${element(split("/", data.template_file.aws-terraform-dcos-default-cidr.rendered),0)}"
   public_subnet_public_ip_remote_site  = "${coalesce(var.public_subnet_public_ip_remote_site, azurerm_public_ip.cisco.ip_address)}"
+  public_gateway_ip = "${local.public_aws_csr_gateway_ip}"
   tunnel_ip_local_site   = "${var.tunnel_ip_local_site}"
   tunnel_ip_remote_site  = "${var.tunnel_ip_remote_site}"
   local_hostname         = "${var.local_hostname}"
