@@ -4,13 +4,13 @@
 Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
+-	[Terraform](https://www.terraform.io/downloads.html) 0.11.x
 
 ## Deploying Multi-Cloud DCOS 
 
-This repository is meant to get the bare minimum of running a multi-region DC/OS cluster. It is not as modifiable as dcos/terraform-dcos so please keep this in mind. 
+This repository is meant to get the bare minimum of running a multi-cloud DC/OS cluster.
 
-This repo is configured to deploy on us-east-1 and us-west-2 with an AWS VPC Peering connection across regions.
+This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN connection in between.
 
 
 ## Terraform Quick Start
@@ -23,108 +23,49 @@ terraform apply -var-file desired_cluster_profile.tfvars
 
 ### High Level Overview of Architecture
 
-* a VPC Peering connection that connects us-east-1 and us-west-2 
-* Main DC/OS cluster lives on us-east-1
-* Bursting Node lives in us-west-2
+* Creates an AWS cluster with masters and agents
+* Creates an Azure node with public and private agents
+* Main DC/OS cluster lives on AWS
+* Bursting Node lives in Azure
 
 ### Adding or Remving Remote Nodes or Default Region Nodes
 
 Change the number of remote nodes in the desired cluster profile.
 
 ```bash 
-$ cat desired_cluster_profile
-dcos_version = "1.11-dev"
-os = "centos_7.3"
-expiration = "3h"
+dcos_version = "1.11.2"
 num_of_masters = "1"
 aws_region = "us-east-1"
+aws_master_instance_type = "m4.xlarge"
+aws_agent_instance_type = "m4.xlarge"
+aws_public_agent_instance_type = "m4.xlarge"
+aws_private_agent_instance_type = "m4.xlarge"
+aws_bootstrap_instance_type = "m4.xlarge"
 # ---- Private Agents Zone / Instance
 aws_group_1_private_agent_az = "a"
 aws_group_2_private_agent_az = "b"
 aws_group_3_private_agent_az = "c"
 num_of_private_agent_group_1 = "1"
-num_of_private_agent_group_2 = "1"
-num_of_private_agent_group_3 = "1"
+num_of_private_agent_group_2 = "0"
+num_of_private_agent_group_3 = "0"
 # ---- Public Agents Zone / Instance
 aws_group_1_public_agent_az = "a"
 aws_group_2_public_agent_az = "b"
 aws_group_3_public_agent_az = "c"
-num_of_public_agent_group_1 = "1"
-num_of_public_agent_group_2 = "1"
-num_of_public_agent_group_3 = "1"
+num_of_public_agent_group_1 = "0"
+num_of_public_agent_group_2 = "0"
+num_of_public_agent_group_3 = "0"
 # ----- Remote Region Below
-aws_remote_region = "us-west-2"
-aws_remote_agent_group_1_az = "a"
-aws_remote_agent_group_2_az = "b"
-aws_remote_agent_group_3_az = "c"
-num_of_remote_private_agents_group_1 = "1"
-num_of_remote_private_agents_group_2 = "1"
-num_of_remote_private_agents_group_3 = "1"
-dcos_security = <<EOF
-permissive
-license_key_contents: <INSERT_LICENSE_HERE>
-EOF
+num_of_azure_private_agents = "1"
+num_of_azure_public_agents  = "0"
+# ----- DCOS Config Below
+dcos_cluster_name = "Hybrid-Cloud"
+aws_profile = "273854932432_Mesosphere-PowerUser"
+dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
 ```
 
 ```bash
 terraform apply -var-file desired_cluster_profile.tfvars
-```
-
-## Notes
-
-AWS
-
-```
-conf t
-hostname CSR1
-end
-```
-
-Azure 
-
-```
-config t
-line vty 0 4
-exec-timeout 3 50
-end
-```
-
-```
-enable
-configure terminal
-crypto ikev2 profile default
-match identity remote fqdn domain {remotehostname}
-identity local fqdn {localhostname}
-authentication remote pre-share key cisco123
-authentication local pre-share key cisco123
-end
-```
-
-```
-interface Tunnel0
-ip address {private_ip} 255.255.255.252
-tunnel source GigabitEthernet1
-tunnel destination {Elastic IP of CSR2 on Azure}
-tunnel protection ipsec profile default
-```
-
-```
-crypto ikev2 dpd 10 2 on-demand
-```
-
-```
-router eigrp 1
-network {Private Subnet on AWS} 0.0.0.255
-network 172.16.0.0 0.0.0.255
-```
-
-
-# VERIFICATION
-
-```
-
-terminal monitor
-show crypto session
 ```
 
 ### Destroy Cluster
