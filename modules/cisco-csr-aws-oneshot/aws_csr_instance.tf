@@ -113,7 +113,7 @@ data "template_file" "aws_ssh_template" {
 
    vars {
     cisco_commands = "${module.aws_csr_userdata.userdata_ssh_emulator}"
-    cisco_hostname = "${aws_eip.csr.public_ip}"
+    cisco_hostname = "${local.public_aws_csr_private_ip}"
     cisco_password = "${var.cisco_password}"
     cisco_user    = "${var.cisco_user}"
    }
