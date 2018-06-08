@@ -17,7 +17,7 @@ This repo is configured to deploy on us-east-1 and us-west-2 with an AWS VPC Pee
 
 ```bash
 mkdir terraform-demo && cd terraform-demo
-terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=secondary
+terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=vpn_automation
 terraform apply -var-file desired_cluster_profile.tfvars
 ```
 
