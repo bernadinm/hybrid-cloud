@@ -139,7 +139,7 @@ variable "custom_dcos_download_path" {
 }
 
 variable "dcos_security" {
- default = ""
+ default = "disabled"
  description = "DC/OS EE security mode: either disabled, permissive, or strict."
 }
 
