@@ -21,22 +21,10 @@ module "aws_azure_cisco_vpn_connecter" {
   cisco_password = "${var.cisco_password}"
 }
 
-output "aws_config_out" {
- value = "${module.aws_azure_cisco_vpn_connecter.aws_config_out}"
-}
-
-output "private_azure_csr_private_ip" {
- value = "${module.aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
-}
-
-output "aws_public_ip_address" {
+output "AWS Cisco CSR VPN Router Public IP Address" {
  value = "${module.aws_azure_cisco_vpn_connecter.aws_public_ip_address}"
 }
 
-output "azure_public_ip_address" {
+output "Azure Cisco CSR VPN Router Public IP Address" {
  value = "${module.aws_azure_cisco_vpn_connecter.azure_public_ip_address}"
-}
-
-output "azure_config_out" {
- value = "${module.aws_azure_cisco_vpn_connecter.azure_config_out}"
 }
