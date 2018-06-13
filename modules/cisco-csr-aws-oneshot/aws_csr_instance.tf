@@ -71,7 +71,7 @@ resource "aws_eip" "csr" {
 
 resource "aws_eip_association" "csr" {
   allocation_id = "${aws_eip.csr.id}"
-  instance_id   = "${aws_instance.cisco.id}"
+  network_interface_id  = "${aws_instance.cisco.primary_network_interface_id}"
 }
 
 resource "aws_network_interface" "csr" {
