@@ -71,7 +71,6 @@ resource "azurerm_network_security_rule" "cisco_sshRule" {
     network_security_group_name = "${azurerm_network_security_group.cisco_security_group.name}"
 }
 
-
 resource "azurerm_network_security_rule" "cisco_udp500" {
     name                        = "cisco_udp_500"
     priority                    = 110
@@ -174,7 +173,7 @@ resource "azurerm_virtual_machine" "cisco" {
     delete_data_disks_on_termination = true
 
     plan {
-        name = "16_5"
+        name = "16_6"
         product = "cisco-csr-1000v"
         publisher = "cisco"
     }
@@ -182,7 +181,7 @@ resource "azurerm_virtual_machine" "cisco" {
     storage_image_reference {
         publisher = "cisco"
         offer = "cisco-csr-1000v"
-        sku = "16_5"
+        sku = "16_6"
         version = "latest"
     }
 

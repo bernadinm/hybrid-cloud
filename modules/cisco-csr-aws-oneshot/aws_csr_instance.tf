@@ -14,11 +14,11 @@ data "aws_ami_ids" "cisco_csr" {
 
   filter {
     name   = "name"
-    values = ["cisco-ic_CSR_*-AMI-SEC-HVM-*"]
+    values = ["cisco-CSR-.16.06.01*"]
   }
   filter {
     name   = "description"
-    values = ["cisco-ic_CSR_*-AMI-SEC-HVM"]
+    values = ["cisco-CSR-*"]
   }
   filter {
     name   = "is-public"
