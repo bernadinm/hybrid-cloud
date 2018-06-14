@@ -15,6 +15,14 @@ This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN
 
 ## Terraform Quick Start
 
+1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
+
+https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
+
+2.  Accept the Azure Cisco CSR subscription from the marketplace 
+
+
+
 ```bash
 mkdir terraform-demo && cd terraform-demo
 terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=vpn_automation
