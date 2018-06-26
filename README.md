@@ -13,6 +13,15 @@ This repository is meant to get the bare minimum of running a multi-cloud DC/OS 
 This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN connection in between.
 
 
+### High Level Overview of Architecture
+
+* Creates an AWS cluster with masters and agents
+* Creates an Azure node with public and private agents
+* Main DC/OS cluster lives on AWS
+* Bursting Node lives in Azure
+
+
+
 ## Terraform Prerequisites Quick Start
 
 1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
@@ -31,7 +40,7 @@ https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
 
 ```bash
 mkdir terraform-demo && cd terraform-demo
-terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=vpn_automation
+terraform init -from-module github.com/bernadinm/hybrid-cloud
 cp desired_cluster_profile.tfvars.example desired_cluster_profile.tfvars
 ```
 
@@ -61,12 +70,6 @@ $ cat desired_cluster_profile.tfvars | grep aws_profile
 aws_profile = "110465657741_Mesosphere-PowerUser"
 ```
 
-### High Level Overview of Architecture
-
-* Creates an AWS cluster with masters and agents
-* Creates an Azure node with public and private agents
-* Main DC/OS cluster lives on AWS
-* Bursting Node lives in Azure
 
 
 ### Adding or Remving Remote Nodes or Default Region Nodes
