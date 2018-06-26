@@ -63,7 +63,7 @@ dcos_license_key_contents = "<MY_LICENSE_KEY>"
 
 ### Configure your aws_profile in Terraform
 
-Copy you Mesosphere `maws` profile name and provide it to terraform. For the sales team, it is already know to be `110465657741_Mesosphere-PowerUser` so it will look like this below:
+Copy you Mesosphere `maws` profile name and provide it to terraform. For the sales team, it is already known to be `110465657741_Mesosphere-PowerUser` so it will look like this below:
 
 ```bash
 $ cat desired_cluster_profile.tfvars | grep aws_profile
