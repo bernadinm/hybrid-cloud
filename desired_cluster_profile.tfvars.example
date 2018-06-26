@@ -26,5 +26,5 @@ num_of_azure_public_agent = "1"
 # ----- DCOS Config Below
 dcos_security = "permissive"
 dcos_cluster_name = "Hybrid-Cloud"
-aws_profile = "SE"
+aws_profile = "110465657741_Mesosphere-PowerUser"
 dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
