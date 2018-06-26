@@ -39,8 +39,8 @@ cp desired_cluster_profile.tfvars.example desired_cluster_profile.tfvars
 
 ```bash
 # Download maws-darwin binary from https://github.com/mesosphere/maws/releases
-chmod +x maws-darwin
-sudo mv ~/Downloads/maws-linux /usr/local/bin/maws
+chmod +x maws*
+sudo mv ~/Downloads/maws* /usr/local/bin/maws
 maws login 110465657741_Mesosphere-PowerUser
 ```
 ### Configure Mesosphere License Key in Terraform
