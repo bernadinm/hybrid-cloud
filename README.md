@@ -13,7 +13,7 @@ This repository is meant to get the bare minimum of running a multi-cloud DC/OS 
 This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN connection in between.
 
 
-## Terraform Quick Start
+## Terraform Prerequisites Quick Start
 
 1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
 
@@ -21,12 +21,44 @@ https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
 
 2.  Accept the Azure Cisco CSR subscription from the marketplace 
 
+3.  Retrieve Sales Mesosphere License Key via OneLogin here: https://mesosphere.onelogin.com/notes/51818
 
+4.  Retrieve Sales Mesosphere PEM Key via OneLogin here: https://mesosphere.onelogin.com/notes/41130
+
+5.  Retrieve Mesosphere MAWS Commandline tool for access to AWS: https://github.com/mesosphere/maws/releases
+
+6.  Retrieve Azure CLI tool for access to Azure: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 
 ```bash
 mkdir terraform-demo && cd terraform-demo
 terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=vpn_automation
-terraform apply -var-file desired_cluster_profile.tfvars
+cp desired_cluster_profile.tfvars.example desired_cluster_profile.tfvars
+```
+
+### Configure Mesosphere MAWS 
+
+```bash
+# Download maws-darwin binary from https://github.com/mesosphere/maws/releases
+chmod +x maws-darwin
+sudo mv ~/Downloads/maws-linux /usr/local/bin/maws
+maws login 110465657741_Mesosphere-PowerUser
+```
+### Configure Mesosphere License Key in Terraform
+
+Copy your license and place it in the `desired_cluster_profile.tfvars`
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep dcos_license_key_contents
+dcos_license_key_contents = "<MY_LICENSE_KEY>"
+```
+
+### Configure your aws_profile in Terraform
+
+Copy you Mesosphere `maws` profile name and provide it to terraform. For the sales team, it is already know to be `110465657741_Mesosphere-PowerUser` so it will look like this below:
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep aws_profile
+aws_profile = "110465657741_Mesosphere-PowerUser"
 ```
 
 ### High Level Overview of Architecture
@@ -35,6 +67,7 @@ terraform apply -var-file desired_cluster_profile.tfvars
 * Creates an Azure node with public and private agents
 * Main DC/OS cluster lives on AWS
 * Bursting Node lives in Azure
+
 
 ### Adding or Remving Remote Nodes or Default Region Nodes
 
