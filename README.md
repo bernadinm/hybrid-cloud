@@ -70,7 +70,11 @@ $ cat desired_cluster_profile.tfvars | grep aws_profile
 aws_profile = "110465657741_Mesosphere-PowerUser"
 ```
 
+### Configure your Azure login for Terraform
 
+```bash
+$ az login
+```
 
 ### Adding or Remving Remote Nodes or Default Region Nodes
 
