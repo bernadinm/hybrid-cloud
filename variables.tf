@@ -3,6 +3,13 @@ variable "ssh_key_name" {
   default = "default"
 }
 
+variable "ssh_private_key_filename" {
+ # cannot leave this empty as the file() interpolation will fail later on for the private_key local variable
+ # https://github.com/hashicorp/terraform/issues/15605
+ default = "/dev/null"
+ description = "Path to file containing your ssh private key"
+}
+
 variable "user" {
   description = "Username of the OS"
   default = "core"
@@ -24,8 +31,13 @@ variable "admin_cidr" {
 }
 
 variable "os" {
-  default = "coreos_1235.9.0"
+  default = "coreos_1576.5.0"
   description = "Recommended DC/OS OSs are centos_7.2, coreos_1235.9.0, coreos_835.13.0"
+}
+
+variable "dcos_type" {
+  default = "ee"
+  description = "DC/OS install type, either ee or open"
 }
 
 variable "aws_master_instance_type" {
@@ -90,7 +102,7 @@ variable "owner" {
 
 variable "expiration" {
   description = "Paired with Cloud Cluster Cleaner will notify on expiration via slack"
-  default = "1h"
+  default = "2d"
 }
 
 variable "ip-detect" {
@@ -132,7 +144,7 @@ variable "custom_dcos_download_path" {
 }
 
 variable "dcos_security" {
- default = ""
+ default = "disabled"
  description = "DC/OS EE security mode: either disabled, permissive, or strict."
 }
 

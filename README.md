@@ -4,36 +4,77 @@
 Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
+-	[Terraform](https://www.terraform.io/downloads.html) 0.11.x
 
 ## Deploying Multi-Cloud DCOS 
 
-This repository is meant to get the bare minimum of running a multi-region DC/OS cluster. It is not as modifiable as dcos/terraform-dcos so please keep this in mind. 
+This repository is meant to get the bare minimum of running a multi-cloud DC/OS cluster.
 
-This repo is configured to deploy on us-east-1 and us-west-2 with an AWS VPC Peering connection across regions.
+This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN connection in between.
 
 
-## Terraform Quick Start
+## Terraform Prerequisites Quick Start
+
+1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
+
+https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
+
+2.  Accept the Azure Cisco CSR subscription from the marketplace 
+
+3.  Retrieve Sales Mesosphere License Key via OneLogin here: https://mesosphere.onelogin.com/notes/51818
+
+4.  Retrieve Sales Mesosphere PEM Key via OneLogin here: https://mesosphere.onelogin.com/notes/41130
+
+5.  Retrieve Mesosphere MAWS Commandline tool for access to AWS: https://github.com/mesosphere/maws/releases
+
+6.  Retrieve Azure CLI tool for access to Azure: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 
 ```bash
 mkdir terraform-demo && cd terraform-demo
-terraform init -from-module github.com/bernadinm/hybrid-cloud
-terraform apply -var-file desired_cluster_profile.tfvars
+terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=vpn_automation
+cp desired_cluster_profile.tfvars.example desired_cluster_profile.tfvars
+```
+
+### Configure Mesosphere MAWS 
+
+```bash
+# Download maws-darwin binary from https://github.com/mesosphere/maws/releases
+chmod +x maws-darwin
+sudo mv ~/Downloads/maws-linux /usr/local/bin/maws
+maws login 110465657741_Mesosphere-PowerUser
+```
+### Configure Mesosphere License Key in Terraform
+
+Copy your license and place it in the `desired_cluster_profile.tfvars`
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep dcos_license_key_contents
+dcos_license_key_contents = "<MY_LICENSE_KEY>"
+```
+
+### Configure your aws_profile in Terraform
+
+Copy you Mesosphere `maws` profile name and provide it to terraform. For the sales team, it is already know to be `110465657741_Mesosphere-PowerUser` so it will look like this below:
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep aws_profile
+aws_profile = "110465657741_Mesosphere-PowerUser"
 ```
 
 ### High Level Overview of Architecture
 
-* a VPC Peering connection that connects us-east-1 and us-west-2 
-* Main DC/OS cluster lives on us-east-1
-* Bursting Node lives in us-west-2
+* Creates an AWS cluster with masters and agents
+* Creates an Azure node with public and private agents
+* Main DC/OS cluster lives on AWS
+* Bursting Node lives in Azure
+
 
 ### Adding or Remving Remote Nodes or Default Region Nodes
 
 Change the number of remote nodes in the desired cluster profile.
 
 ```bash 
-$ cat desired_cluster_profile.tfvars
-dcos_version = "1.11.0"
+dcos_version = "1.11.2"
 num_of_masters = "1"
 aws_region = "us-east-1"
 aws_master_instance_type = "m4.xlarge"
@@ -45,28 +86,29 @@ aws_bootstrap_instance_type = "m4.xlarge"
 aws_group_1_private_agent_az = "a"
 aws_group_2_private_agent_az = "b"
 aws_group_3_private_agent_az = "c"
-num_of_private_agent_group_1 = "3"
-num_of_private_agent_group_2 = "3"
-num_of_private_agent_group_3 = "3"
+num_of_private_agent_group_1 = "1"
+num_of_private_agent_group_2 = "0"
+num_of_private_agent_group_3 = "0"
 # ---- Public Agents Zone / Instance
 aws_group_1_public_agent_az = "a"
-aws_group_2_public_agent_az = "c"
+aws_group_2_public_agent_az = "b"
 aws_group_3_public_agent_az = "c"
 num_of_public_agent_group_1 = "0"
 num_of_public_agent_group_2 = "0"
-num_of_public_agent_group_3 = "1"
+num_of_public_agent_group_3 = "0"
 # ----- Remote Region Below
-num_of_azure_private_agents = "3"
+num_of_azure_private_agents = "1"
+num_of_azure_public_agents  = "0"
 # ----- DCOS Config Below
-dcos_security = "permissive"
 dcos_cluster_name = "Hybrid-Cloud"
-aws_profile = "SE"
+aws_profile = "273854932432_Mesosphere-PowerUser"
 dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
 ```
 
 ```bash
 terraform apply -var-file desired_cluster_profile.tfvars
 ```
+
 ### Destroy Cluster
 
 
