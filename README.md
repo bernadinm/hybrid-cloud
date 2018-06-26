@@ -76,6 +76,12 @@ aws_profile = "110465657741_Mesosphere-PowerUser"
 $ az login
 ```
 
+### Deploy Multi-Cloud via Terraform 
+
+```bash
+$ terraform apply -var-file desired_cluster_profile.tfvars
+```
+
 ### Adding or Remving Remote Nodes or Default Region Nodes
 
 Change the number of remote nodes in the desired cluster profile.
