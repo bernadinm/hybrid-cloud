@@ -216,11 +216,12 @@ resource "azurerm_virtual_machine" "bootstrap" {
 
 # Create DCOS Mesos Bootstrap Scripts to execute
   module "azure-dcos-bootstrap" {
-    source = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
+    source = "github.com/dcos/tf_dcos_core"
     bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
     # Only allow upgrade and install as installation mode
     dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
     dcos_version = "${var.dcos_version}"
+    dcos_type = "${var.dcos_type}"
     role = "dcos-bootstrap"
     dcos_bootstrap_port = "${var.custom_dcos_bootstrap_port}"
     custom_dcos_download_path = "${var.custom_dcos_download_path}"
@@ -308,6 +309,7 @@ resource "null_resource" "azure-bootstrap" {
     dcos_security = "${var.dcos_security}"
     num_of_masters = "${var.num_of_masters}"
     dcos_audit_logging = "${var.dcos_audit_logging}"
+    dcos_type = "${var.dcos_type}"
     dcos_auth_cookie_secure_flag = "${var.dcos_auth_cookie_secure_flag}"
     dcos_aws_access_key_id = "${var.dcos_aws_access_key_id}"
     dcos_aws_region = "${coalesce(var.dcos_aws_region, var.aws_region)}"

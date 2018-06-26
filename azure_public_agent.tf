@@ -356,12 +356,13 @@ resource "azurerm_virtual_machine" "public-agent" {
 
 # Create DCOS Mesos Public Agent Scripts to execute
 module "azure-dcos-mesos-agent-public" {
-  source               = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
+  source               = "github.com/dcos/tf_dcos_core"
   bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
   dcos_bootstrap_port  = "${var.custom_dcos_bootstrap_port}"
   # Only allow upgrade and install as installation mode
   dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
   dcos_version         = "${var.dcos_version}"
+  dcos_type            = "${var.dcos_type}"
   role                 = "dcos-mesos-agent-public"
 }
 

@@ -180,9 +180,10 @@ resource "aws_instance" "master" {
 
 # Create DCOS Mesos Master Scripts to execute
 module "dcos-mesos-master" {
-  source               = "git@github.com:mesosphere/enterprise-terraform-dcos//tf_dcos_core"
+  source               = "github.com/dcos/tf_dcos_core"
   bootstrap_private_ip = "${aws_instance.bootstrap.private_ip}"
   dcos_bootstrap_port  = "${var.custom_dcos_bootstrap_port}"
+  dcos_type = "${var.dcos_type}"
   # Only allow upgrade and install as installation mode
   dcos_install_mode = "${var.state == "upgrade" ? "upgrade" : "install"}"
   dcos_version         = "${var.dcos_version}"

@@ -35,6 +35,11 @@ variable "os" {
   description = "Recommended DC/OS OSs are centos_7.2, coreos_1235.9.0, coreos_835.13.0"
 }
 
+variable "dcos_type" {
+  default = "ee"
+  description = "DC/OS install type, either ee or open"
+}
+
 variable "aws_master_instance_type" {
   description = "AWS DC/OS master instance type"
   default = "m3.xlarge"
