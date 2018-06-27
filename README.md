@@ -120,11 +120,11 @@ Public Agent Public IPs = [
 ssh_user = core
 ```
 
-## Lab Documenation
+## Lab Documentation
 
-1. [Adding or Removing Nodes from Existing Cluster](./dcos
-2. [Adding a dcos-website on AWS then move to Azure]
-3. [Deploying Cassandra Multi DataCenter]
+1. [Adding or Removing Nodes from Existing Cluster](./docs/maintenance.md)
+2. [Adding a dcos-website on AWS then move to Azure](./docs/<WIP.md)
+3. [Deploying Cassandra Multi DataCenter](./docs/cassandra-multi-dc.md)
 
 ### Destroy Cluster
 
