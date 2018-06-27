@@ -20,8 +20,6 @@ This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN
 * Main DC/OS cluster lives on AWS
 * Bursting Node lives in Azure
 
-
-
 ## Terraform Prerequisites Quick Start
 
 1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
@@ -30,9 +28,9 @@ https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
 
 2.  Accept the Azure Cisco CSR subscription from the marketplace 
 
-3.  Retrieve Sales Mesosphere License Key via OneLogin here: https://mesosphere.onelogin.com/notes/51818
+3.  Retrieve Sales Mesosphere License Key via OneLogin here: https://mesosphere.onelogin.com/notes/56317
 
-4.  Retrieve Sales Mesosphere PEM Key via OneLogin here: https://mesosphere.onelogin.com/notes/41130
+4.  Retrieve Sales Mesosphere Private and Public Key via OneLogin here: https://mesosphere.onelogin.com/notes/41130
 
 5.  Retrieve Mesosphere MAWS Commandline tool for access to AWS: https://github.com/mesosphere/maws/releases
 
@@ -52,6 +50,20 @@ chmod +x maws*
 sudo mv ~/Downloads/maws* /usr/local/bin/maws
 maws login 110465657741_Mesosphere-PowerUser
 ```
+
+### Configure SSH Private and Public Key for Terraform
+
+Set your ssh agent locally to point to your pem key
+
+```bash
+$ ssh-add /path/to/ssh_private_key.pem
+```
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep ssh_pub_key
+ssh_pub_key = "<INSERT_SSH_PUB_KEY>"
+```
+
 ### Configure Mesosphere License Key in Terraform
 
 Copy your license and place it in the `desired_cluster_profile.tfvars`
@@ -82,45 +94,37 @@ $ az login
 $ terraform apply -var-file desired_cluster_profile.tfvars
 ```
 
-### Adding or Remving Remote Nodes or Default Region Nodes
+Here is an output of a successful deployment:
 
-Change the number of remote nodes in the desired cluster profile.
+```
+Apply complete! Resources: 114 added, 0 changed, 0 destroyed.
 
-```bash 
-dcos_version = "1.11.2"
-num_of_masters = "1"
-aws_region = "us-east-1"
-aws_master_instance_type = "m4.xlarge"
-aws_agent_instance_type = "m4.xlarge"
-aws_public_agent_instance_type = "m4.xlarge"
-aws_private_agent_instance_type = "m4.xlarge"
-aws_bootstrap_instance_type = "m4.xlarge"
-# ---- Private Agents Zone / Instance
-aws_group_1_private_agent_az = "a"
-aws_group_2_private_agent_az = "b"
-aws_group_3_private_agent_az = "c"
-num_of_private_agent_group_1 = "1"
-num_of_private_agent_group_2 = "0"
-num_of_private_agent_group_3 = "0"
-# ---- Public Agents Zone / Instance
-aws_group_1_public_agent_az = "a"
-aws_group_2_public_agent_az = "b"
-aws_group_3_public_agent_az = "c"
-num_of_public_agent_group_1 = "0"
-num_of_public_agent_group_2 = "0"
-num_of_public_agent_group_3 = "0"
-# ----- Remote Region Below
-num_of_azure_private_agents = "1"
-num_of_azure_public_agents  = "0"
-# ----- DCOS Config Below
-dcos_cluster_name = "Hybrid-Cloud"
-aws_profile = "273854932432_Mesosphere-PowerUser"
-dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
+Outputs:
+
+AWS Cisco CSR VPN Router Public IP Address = 18.206.133.140
+Azure Cisco CSR VPN Router Public IP Address = 40.118.230.34
+Bootstrap Host Public IP = mbernadin-tf80cc-bootstrap.westus.cloudapp.azure.com
+Bootstrap Public IP Address = 34.229.179.46
+Master ELB Public IP = mbernadin-tf80cc-pub-mas-elb-1841202780.us-east-1.elb.amazonaws.com
+Master Public IPs = [
+    52.204.155.230
+]
+Private Agent Public IPs = [
+    mbernadin-tf80cc-agent-1.westus.cloudapp.azure.com
+]
+Public Agent ELB Address = mbernadin-tf80cc-pub-agt-elb-1182904022.us-east-1.elb.amazonaws.com
+Public Agent ELB Public IP = public-agent-mbernadin-tf80cc.westus.cloudapp.azure.com
+Public Agent Public IPs = [
+    mbernadin-tf80cc-public-agent-1.westus.cloudapp.azure.com
+]
+ssh_user = core
 ```
 
-```bash
-terraform apply -var-file desired_cluster_profile.tfvars
-```
+## Lab Documenation
+
+1. [Adding or Removing Nodes from Existing Cluster](./dcos
+2. [Adding a dcos-website on AWS then move to Azure]
+3. [Deploying Cassandra Multi DataCenter]
 
 ### Destroy Cluster
 
