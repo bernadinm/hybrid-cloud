@@ -236,6 +236,15 @@ resource "null_resource" "master" {
       "until $(curl --output /dev/null --silent --head --fail http://${element(aws_instance.master.*.private_ip, count.index)}/); do printf 'loading DC/OS...'; sleep 10; done"
     ]
   }
+
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo chmod 666 /run/dcos/etc/dcos-checks/checks_service_account.json"
+    ]
+  }
 }
 
 output "Master ELB Public IP" {
