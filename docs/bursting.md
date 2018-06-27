@@ -4,6 +4,16 @@
 
 Change the number of remote nodes in the desired cluster profile.
 
+1. Open your `desired_cluster_profile.tfvars`
+2. Change the following variables
+  aws_group_{n}_private_agent_az from 1 to 3 (per zone)
+  
+  number of aws_group_{n}_public_agent_az from 1 to 3
+  
+  num_of_azure_private_agents from 1 to 5
+
+At the end of your change it should look like this:
+
 ```bash 
 dcos_version = "1.11.3"
 num_of_masters = "1"
@@ -36,6 +46,7 @@ aws_profile = "110465657741_Mesosphere-PowerUser"
 dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
 ssh_pub_key = "<INSERT_SSH_PUB_KEY>"
 ```
+5. Save the file and now you can burst out by performing the `terraform apply <args>` below:
 
 ```bash
 terraform apply -var-file desired_cluster_profile.tfvars
