@@ -123,7 +123,7 @@ ssh_user = core
 ## Lab Documentation
 
 1. [Adding or Removing Nodes from Existing Cluster](./docs/maintenance.md)
-2. [Adding a dcos-website on AWS then move to Azure](./docs/<WIP.md)
+2. [WIP|Adding a dcos-website on AWS then move to Azure](./docs/<WIP.md)
 3. [Deploying Cassandra Multi DataCenter](./docs/cassandra-multi-dc.md)
 
 ### Destroy Cluster
