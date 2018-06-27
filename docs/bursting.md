@@ -1,11 +1,11 @@
-## Maintenance
+## Bursting into Azure from AWS
 
 ### Adding or Removing Remote Nodes or Default Region Nodes
 
 Change the number of remote nodes in the desired cluster profile.
 
 ```bash 
-dcos_version = "1.11.2"
+dcos_version = "1.11.3"
 num_of_masters = "1"
 aws_region = "us-east-1"
 aws_master_instance_type = "m4.xlarge"
