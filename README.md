@@ -53,7 +53,7 @@ maws login 110465657741_Mesosphere-PowerUser
 
 ### Configure SSH Private and Public Key for Terraform
 
-Set your ssh agent locally to point to your pem key
+Set your ssh agent locally to point to your pem key and public key
 
 ```bash
 $ ssh-add /path/to/ssh_private_key.pem
