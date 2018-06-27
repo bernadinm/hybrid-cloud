@@ -215,7 +215,7 @@ resource "null_resource" "agent" {
   count = "${var.state == "none" ? 0 : var.num_of_azure_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${null_resource.bootstrap.id}"
+    cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
     current_virtual_machine_id = "${azurerm_virtual_machine.agent.*.id[count.index]}"
   }
   # Bootstrap script can run on any instance of the cluster
@@ -249,9 +249,16 @@ resource "null_resource" "agent" {
       "sudo ./run.sh",
     ]
   }
+
+  # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
+  provisioner "remote-exec" {
+    inline = [
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+    ]
+  }
 }
 
 output "Private Agent Public IPs" {
   value = ["${azurerm_public_ip.agent_public_ip.*.fqdn}"]
 }
-
