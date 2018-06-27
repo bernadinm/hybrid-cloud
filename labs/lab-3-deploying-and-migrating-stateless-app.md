@@ -5,14 +5,10 @@
 1. Deploy Marathon-lb on AWS
 
 1. Run `terraform output` and locate you AWS Public Agent ELB name. For example:
-
 ```bash
-Public Agent ELB Address = alexly-tf78ff-pub-agt-elb-1172026073.us-east-1.elb.amazonaws.com
+AWS Public Agent ELB Address = alexly-tf78ff-pub-agt-elb-1172026073.us-east-1.elb.amazonaws.com
 ```
-
 2. Copy your ELB name and place it in your _dcos-website.json_ in the `HAPROXY_0_VHOST` value. 
-
-
 
 ```bash 
 {
@@ -44,7 +40,7 @@ Public Agent ELB Address = alexly-tf78ff-pub-agt-elb-1172026073.us-east-1.elb.am
     "HAPROXY_DEPLOYMENT_ALT_PORT":"10005",
     "HAPROXY_GROUP":"external",
     "HAPROXY_0_REDIRECT_TO_HTTPS":"true"
-    "HAPROXY_0_VHOST":"<INSERT_ELB_NAME_FROM_TERRAFORM_OUTPUT_BY_CLOUD_PROVIDER>"
+    "HAPROXY_0_VHOST":"<INSERT_CLOUD_PUBLIC_AGENT_ELB_NAME_FROM_TERRAFORM_OUTPUT>"
   }
 }
 ```
@@ -58,4 +54,3 @@ Because we haven't decided which region by default it will be automatically depl
 5. Go to the Services tab on the DC/OS website and edit the configuration and edit your dcos-website and go to the placement tab and change the default region from local to Azure. Apply changes and validate that the application gets redeployed to Azure.
 
 6. Check that you can still see the application still running on the same AWS ELB address.
-

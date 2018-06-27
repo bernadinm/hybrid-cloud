@@ -416,7 +416,7 @@ resource "null_resource" "public-agent" {
   }
 }
 
-output "Public Agent ELB Public IP" {
+output "Azure Public Agent ELB Address" {
   value = "${azurerm_public_ip.public_agent_load_balancer_public_ip.fqdn}"
 }
 

@@ -44,7 +44,7 @@ resource "aws_elb" "public-agent-elb" {
   }
 }
 
-output "Public Agent ELB Address" {
+output "AWS Public Agent ELB Address" {
   value = "${aws_elb.public-agent-elb.dns_name}"
 }
 
