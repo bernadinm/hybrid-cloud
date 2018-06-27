@@ -4,11 +4,12 @@
 
 1. Deploy Marathon-lb on AWS
 
-1. Run `terraform output` and locate you AWS Public Agent ELB name. For example:
+2. Run `terraform output` and locate you AWS Public Agent ELB name. For example:
 ```bash
-AWS Public Agent ELB Address = alexly-tf78ff-pub-agt-elb-1172026073.us-east-1.elb.amazonaws.com
+AWS Public Agent ELB Address = mbernadin-tfd132-pub-agt-elb-544778731.us-east-1.elb.amazonaws.com
 ```
-2. Copy your ELB name and place it in your _dcos-website.json_ in the `HAPROXY_0_VHOST` value. 
+
+3. Copy your ELB name and place it in your _dcos-website.json_ in the `HAPROXY_0_VHOST` value. 
 
 ```bash 
 {
@@ -45,12 +46,12 @@ AWS Public Agent ELB Address = alexly-tf78ff-pub-agt-elb-1172026073.us-east-1.el
 }
 ```
 
-3. Deploy the application using the json editor on DC/OS UI or using the DC/OS CLI. 
+4. Deploy the application using the json editor on DC/OS UI or using the DC/OS CLI. 
  
 Because we haven't decided which region by default it will be automatically deployed on the local region which is AWS. 
 
-4. Ensure you can reach your application from the web via the ELB name on your broswer. This will ensure that your application is successfully running on AWS.
+5. Ensure you can reach your application from the web via the ELB name on your broswer. This will ensure that your application is successfully running on AWS.
 
-5. Go to the Services tab on the DC/OS website and edit the configuration and edit your dcos-website and go to the placement tab and change the default region from local to Azure. Apply changes and validate that the application gets redeployed to Azure.
+6. Go to the Services tab on the DC/OS website and edit the configuration and edit your dcos-website and go to the placement tab and change the default region from local to Azure. Apply changes and validate that the application gets redeployed to Azure.
 
-6. Check that you can still see the application still running on the same AWS ELB address.
+7. Check that you can still see the application still running on the same AWS ELB address.
