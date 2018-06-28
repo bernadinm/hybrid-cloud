@@ -12,16 +12,6 @@ This repository is meant to get the bare minimum of running a multi-cloud DC/OS 
 
 This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN connection in between.
 
-
-### High Level Overview of Architecture
-
-* Creates an AWS cluster with masters and agents
-* Creates an Azure node with public and private agents
-* Main DC/OS cluster lives on AWS
-* Bursting Node lives in Azure
-
-![hub-spoke](./aws_azure.svg)
-
 ## Terraform Prerequisites Quick Start
 
 1. Accept the AWS Cisco CSR subscription from the Marketplace by clicking the link below with the same AWS account that will be launchng the terraform scripts:
@@ -121,12 +111,6 @@ Public Agent Public IPs = [
 ]
 ssh_user = core
 ```
-
-## Lab Documentation
-
-1. [LAB2 - Bursting from AWS to Azure](./labs/lab-2-bursting-from-aws-to-azure.md)
-2. [LAB3 - Deploying and Migrating Stateless App from AWS to Azure](./labs/lab-3-deploying-and-migrating-stateless-app.md)
-3. [LAB4 - Deploying Cassandra Multi DataCenter](./labs/lab-4-deploying-cassandra-multi-dc-cluster.md)
 
 ### Destroy Cluster
 
