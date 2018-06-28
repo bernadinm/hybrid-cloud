@@ -39,8 +39,12 @@ num_of_public_agent_group_1 = "0"
 num_of_public_agent_group_2 = "0"
 num_of_public_agent_group_3 = "1"
 # ----- Remote Region Below
+azure_region = "UK South"
 num_of_azure_private_agents = "5"
-num_of_azure_public_agents  = "1"
+num_of_azure_public_agents  = "1" 
+azure_public_agent_instance_type = "Standard_D3_v2"
+azure_agent_instance_type = "Standard_D3_v2"
+azure_bootstrap_instance_type = "Standard_D3_v2"
 # ----- DCOS Config Below
 dcos_cluster_name = "Hybrid-Cloud"
 aws_profile = "110465657741_Mesosphere-PowerUser"
