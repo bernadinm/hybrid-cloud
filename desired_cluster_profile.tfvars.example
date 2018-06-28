@@ -22,7 +22,7 @@ num_of_public_agent_group_2 = "0"
 num_of_public_agent_group_3 = "1"
 # ----- Remote Region Below
 num_of_azure_private_agents = "1"
-num_of_azure_public_agent = "0"
+num_of_azure_public_agents = "0"
 # ----- DCOS Config Below
 dcos_security = "permissive"
 dcos_cluster_name = "Hybrid-Cloud"
