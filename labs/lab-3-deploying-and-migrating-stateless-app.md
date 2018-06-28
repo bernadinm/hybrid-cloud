@@ -40,7 +40,7 @@ AWS Public Agent ELB Address = mbernadin-tfd132-pub-agt-elb-544778731.us-east-1.
     "HAPROXY_DEPLOYMENT_GROUP":"dcos-website",
     "HAPROXY_DEPLOYMENT_ALT_PORT":"10005",
     "HAPROXY_GROUP":"external",
-    "HAPROXY_0_REDIRECT_TO_HTTPS":"true"
+    "HAPROXY_0_REDIRECT_TO_HTTPS":"true",
     "HAPROXY_0_VHOST":"<INSERT_CLOUD_PUBLIC_AGENT_ELB_NAME_FROM_TERRAFORM_OUTPUT>"
   }
 }
