@@ -114,8 +114,8 @@ ssh_user = core
 
 ### Destroy Cluster
 
+For the purpose of this lab we will be keeping our cluster up and running, but if you needed to destroy your cluster for any reason now, here is the command: 
 
-1. Destroy terraform with this command below.
 ```bash
 terraform destroy -var-file desired_cluster_profile.tfvars
 ```
