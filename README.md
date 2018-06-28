@@ -29,12 +29,4 @@ This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN
 3. [LAB3 - Deploying and Migrating Stateless App from AWS to Azure](./labs/lab-3-deploying-and-migrating-stateless-app.md)
 4. [LAB4 - Deploying Cassandra Multi DataCenter](./labs/lab-4-deploying-cassandra-multi-dc-cluster.md)
 
-### Destroy Cluster
-
-
-1. Destroy terraform with this command below.
-```bash
-terraform destroy -var-file desired_cluster_profile.tfvars
-```
-
 Note: No major enhancements should be expected with this repo. It is meant for demo and testing purposes only.
