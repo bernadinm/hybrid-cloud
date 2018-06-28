@@ -119,8 +119,7 @@ resource "null_resource" "public-agent-group-1" {
   provisioner "remote-exec" {
     inline = [
      "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo chmod 666 /run/dcos/etc/dcos-checks/checks_service_account.json || exit 0"
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
     ]
   }
 
