@@ -20,6 +20,7 @@ This repo is configured to deploy on AWS and Azure using Cisco CSR 1000V for VPN
 * Main DC/OS cluster lives on AWS
 * Bursting Node lives in Azure
 
+![hub-spoke](./aws_azure.svg)
 
 ## Terraform Prerequisites Quick Start
 
