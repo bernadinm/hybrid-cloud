@@ -46,3 +46,12 @@ SELECT * FROM mesosphere.test;
 ```
 
 And you'll see the keyspace replicated to this remote node as well as its data.
+
+### Navigation
+
+1. [LAB1 - Deploying AWS Using Terraform](./lab-1-deploying-hybrid-cluster.md)
+2. [LAB2 - Bursting from AWS to Azure](./lab-2-bursting-from-aws-to-azure.md)
+3. [LAB3 - Deploying and Migrating Stateless App from AWS to Azure](./lab-3-deploying-and-migrating-stateless-app.md)
+4. LAB4 - Deploying Cassandra Multi DataCenter (current)
+
+[Return to Main Page](../README.md)

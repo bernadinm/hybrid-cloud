@@ -121,3 +121,12 @@ terraform destroy -var-file desired_cluster_profile.tfvars
 ```
 
 Note: No major enhancements should be expected with this repo. It is meant for demo and testing purposes only.
+
+### Navigation
+
+1. LAB1 - Deploying AWS Using Terraform (current)
+2. [LAB2 - Bursting from AWS to Azure](./lab-2-bursting-from-aws-to-azure.md)
+3. [LAB3 - Deploying and Migrating Stateless App from AWS to Azure](./lab-3-deploying-and-migrating-stateless-app.md)
+4. [LAB4 - Deploying Cassandra Multi DataCenter](./lab-4-deploying-cassandra-multi-dc-cluster.md)
+
+[Return to Main Page](../README.md)

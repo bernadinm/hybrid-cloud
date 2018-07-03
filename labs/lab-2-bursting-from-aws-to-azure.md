@@ -57,3 +57,12 @@ ssh_pub_key = "<INSERT_SSH_PUB_KEY>"
 ```bash
 terraform apply -var-file desired_cluster_profile.tfvars
 ```
+
+### Navigation
+
+1. [LAB1 - Deploying AWS Using Terraform](./lab-1-deploying-hybrid-cluster.md)
+2. LAB2 - Bursting from AWS to Azure (current)
+3. [LAB3 - Deploying and Migrating Stateless App from AWS to Azure](./lab-3-deploying-and-migrating-stateless-app.md)
+4. [LAB4 - Deploying Cassandra Multi DataCenter](./lab-4-deploying-cassandra-multi-dc-cluster.md)
+
+[Return to Main Page](../README.md)

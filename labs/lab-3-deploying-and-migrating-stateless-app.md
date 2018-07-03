@@ -55,3 +55,12 @@ Because we haven't decided which region by default it will be automatically depl
 6. Go to the Services tab on the DC/OS website and edit the configuration and edit your dcos-website and go to the placement tab and change the default region from local to Azure. Apply changes and validate that the application gets redeployed to Azure.
 
 7. Check that you can still see the application still running on the same AWS ELB address.
+
+### Navigation
+
+1. [LAB1 - Deploying AWS Using Terraform](./lab-1-deploying-hybrid-cluster.md)
+2. [LAB2 - Bursting from AWS to Azure](./lab-2-bursting-from-aws-to-azure.md)
+3. LAB3 - Deploying and Migrating Stateless App from AWS to Azure (current)
+4. [LAB4 - Deploying Cassandra Multi DataCenter](./lab-4-deploying-cassandra-multi-dc-cluster.md)
+
+[Return to Main Page](../README.md)
