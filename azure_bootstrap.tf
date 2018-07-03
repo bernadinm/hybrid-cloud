@@ -304,7 +304,7 @@ resource "null_resource" "azure-bootstrap" {
   count = "${var.state == "none" ? 0 : 1}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
-    cluster_instance_ids = "${aws_instance.bootstrap.id}"
+    cluster_instance_ids = "${azurerm_virtual_machine.bootstrap.id}"
     dcos_version = "${var.dcos_version}"
     dcos_security = "${var.dcos_security}"
     num_of_masters = "${var.num_of_masters}"
