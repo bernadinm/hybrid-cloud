@@ -2,11 +2,11 @@
 1. Launch a Cassandra cluster with the default configuration (this will run in the local region).
 2. Launch a second Cassandra cluster, with the following changes to the configuration in the UI: under the "Service" tab, change the "Name" field to "cassandra2", the "Data Center" field to "datacenter2", and the "Region" field to "<REMOTE_REGION>".
 3. After the first service completes deployment, visit 
-<<Public ELB of the master>>/service/v1/cassandra/seeds
+<<Public ELB of the master>>/service/cassandra/v1/seeds
 
 For Example
 
-https://amrabdelra-tf8ee7-pub-mas-elb-883657557.us-east-1.elb.amazonaws.com/service/v1/cassandra/seeds 
+https://amrabdelra-tf8ee7-pub-mas-elb-883657557.us-east-1.elb.amazonaws.com/service/cassandra/v1/seeds 
 
 and record the list of addresses provided in that JSON blob. (Most likely "node-0-server.cassandra.autoip.dcos.thisdcos.directory" and "node-1-server.cassandra.autoip.dcos.thisdcos.directory").
 
