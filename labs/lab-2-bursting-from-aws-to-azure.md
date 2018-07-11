@@ -1,5 +1,7 @@
 ## Bursting into Azure from AWS
 
+In the previous lab we've configured a cluster with small # of DC/OS instances. In this lab we will increase the # of nodes on one of the cloud providers (Azure) to simulate bursting and expanding capacity to the cloud 
+
 ### Adding or Removing Remote Nodes or Default Region Nodes
 
 Change the number of remote nodes in the desired cluster profile.
