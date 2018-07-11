@@ -50,11 +50,15 @@ AWS Public Agent ELB Address = mbernadin-tfd132-pub-agt-elb-544778731.us-east-1.
  
 Because we haven't decided which region by default it will be automatically deployed on the local region which is AWS. 
 
-5. Ensure you can reach your application from the web via the ELB name on your broswer. This will ensure that your application is successfully running on AWS.
+5. Ensure you can reach your application from the web via the ELB name on your browser. This will ensure that your application is successfully running on AWS.
 
 6. Go to the Services tab on the DC/OS website and edit the configuration and edit your dcos-website and go to the placement tab and change the default region from local to Azure. Apply changes and validate that the application gets redeployed to Azure.
 
+Note that it may take a couple of minutes for the application to download the docker images and gets rescheduled to Azure. Also In some situations , especially if you are on a slow network, you may need to force refresh the browser CMD+R/CTRL+R/F5
+
 7. Check that you can still see the application still running on the same AWS ELB address.
+
+The application will be a little bit slower since it is responding from AWS ELB --> Marathon LB (on AWS) --> VPN over the internet --> Azure
 
 ### Navigation
 
