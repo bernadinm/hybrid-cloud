@@ -11,7 +11,7 @@ https://amrabdelra-tf8ee7-pub-mas-elb-883657557.us-east-1.elb.amazonaws.com/serv
 and record the list of addresses provided in that JSON blob. (Most likely "node-0-server.cassandra.autoip.dcos.thisdcos.directory" and "node-1-server.cassandra.autoip.dcos.thisdcos.directory").
 
 
-4. After the second service completes deployment, perform Step 3 again but with the seed addresses obtained from $CLUSTER_URL/service/v1/cassandra2/seeds instead.
+4. After the second service completes deployment, perform Step 3 again but with the seed addresses obtained from $CLUSTER_URL/service/cassandra/v1/seeds instead.
 
 
 5. Update the configuration for the "cassandra2" service, changing the "Remote Seeds" field to contain the two addresses noted earlier, separated by a comma (e.g. "node-0-server.cassandra.autoip.dcos.thisdcos.directory,node-1-server.cassandra.autoip.dcos.thisdcos.directory"). Wait for deployment to complete.
