@@ -4,7 +4,7 @@ variable "num_of_azure_public_agents" {
 
 variable "azure_public_agent_instance_type" {
   description = "Azure DC/OS Private Agent instance type"
-  default = "Standard_D4_v2"
+  default = "Standard_D3_v2"
 }
 
 variable "num_of_azure_private_agents" {
@@ -13,12 +13,12 @@ variable "num_of_azure_private_agents" {
 
 variable "azure_agent_instance_type" {
   description = "Azure DC/OS Private Agent instance type"
-  default = "Standard_D4_v2"
+  default = "Standard_D3_v2"
 }
 
 variable "azure_bootstrap_instance_type" {
   description = "Azure DC/OS Bootstrap instance type"
-  default = "Standard_D4_v2"
+  default = "Standard_D3_v2"
 }
 
 variable "azure_region" {
