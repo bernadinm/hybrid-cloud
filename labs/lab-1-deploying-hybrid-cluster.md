@@ -97,12 +97,14 @@ $ cat desired_cluster_profile.tfvars | grep ssh_key_name
 ssh_key_name = "<AWS_KEYPAIR_NAME_BY_REGION>"
 ```
 
-Azure performs requires you to provide the public SSH key directly. Please provide this public key so Terraform can pass this to Azure to use. 
+Azure requires you to provide the public SSH key directly. Please provide this public key so Terraform can pass this to Azure to use. 
 
 ```bash
 $ cat desired_cluster_profile.tfvars | grep ssh_pub_key
 ssh_pub_key = "<INSERT_SSH_PUB_KEY>"
 ```
+
+*Note*: If any of these entries do not exist in the file, you can add them directly in your desired_cluster_profile.tfvars.
 
 ### Configure Mesosphere License Key in Terraform variables file
 
