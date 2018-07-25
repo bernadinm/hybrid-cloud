@@ -89,7 +89,15 @@ Set your ssh agent locally to point to your pem key and public key
 ```bash
 $ ssh-add /path/to/ssh_private_key.pem
 ```
-To double check 
+
+AWS requires you to have an existing keypair set per region. Please set this keypair name so Terraform knows which one to use.
+
+```bash
+$ cat desired_cluster_profile.tfvars | grep ssh_key_name
+ssh_key_name = "<AWS_KEYPAIR_NAME_BY_REGION>"
+```
+
+Azure performs requires you to provide the public SSH key directly. Please provide this public key so Terraform can pass this to Azure to use. 
 
 ```bash
 $ cat desired_cluster_profile.tfvars | grep ssh_pub_key
