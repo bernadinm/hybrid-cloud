@@ -21,6 +21,10 @@ https://aws.amazon.com/marketplace/pp?sku=9vr24qkp1sccxhwfjvp9y91p1
 
 2.  Accept the Azure Cisco CSR subscription from the marketplace (If you are working from Mesosphere's SE/SA account please skip this step)
 
+```bash
+az vm image accept-terms --urn "cisco:cisco-csr-1000v:16_6:16.6.120170804"
+```
+
 3.  Retrieve Sales Mesosphere License Key via OneLogin here: https://mesosphere.onelogin.com/notes/56317. You can also use any valid DC/OS Ent. license key
 
 4.  Retrieve Sales Mesosphere Private and Public Key via OneLogin here: https://mesosphere.onelogin.com/notes/41130. (This is the standard Mesosphere SSH key, You may have this preconfigured already)
