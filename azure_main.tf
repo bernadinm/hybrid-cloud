@@ -37,7 +37,6 @@ resource "azurerm_subnet" "public" {
   address_prefix            = "10.32.0.0/22"
   virtual_network_name      = "${azurerm_virtual_network.vnet.name}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
-  network_security_group_id = "${azurerm_network_security_group.public_subnet_security_group.id}"
   route_table_id            = "${azurerm_route_table.private.id}"
 }
 
