@@ -228,27 +228,26 @@
     },
     {
       "protocol": "tcp",
-     26
+      "port": 10039
     },
     {
       "protocol": "tcp",
-      "port": 10027
+      "port": 10040
     },
     {
       "protocol": "tcp",
-      "port": 10028
+      "port": 10041
     },
     {
       "protocol": "tcp",
-      "port": 10029
+      "port": 10042
     },
     {
       "protocol": "tcp",
-      "port": 10030
+      "port": 10043
     },
     {
       "protocol": "tcp",
-      "cp",
       "port": 10044
     },
     {
