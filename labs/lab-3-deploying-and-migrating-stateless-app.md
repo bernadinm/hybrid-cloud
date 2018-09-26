@@ -4,6 +4,8 @@
 
 1. Deploy Marathon-lb on AWS
 
+_Note:_ _We currently do not have a way to force marathon-lb on a remote site using the catalog. You can use this [remote-mlb.json](./remote-mlb.json) to serve as your example. You can modify the constraints to deploy it to a specific location._
+
 2. Run `terraform output` and locate you AWS Public Agent ELB name. For example:
 ```bash
 AWS Public Agent ELB Address = mbernadin-tfd132-pub-agt-elb-544778731.us-east-1.elb.amazonaws.com
@@ -44,6 +46,12 @@ AWS Public Agent ELB Address = mbernadin-tfd132-pub-agt-elb-544778731.us-east-1.
     "HAPROXY_0_VHOST":"<INSERT_CLOUD_PUBLIC_AGENT_ELB_NAME_FROM_TERRAFORM_OUTPUT>"
   }
 }
+```
+
+_protip:_ _you can specify multiple VHOST by using an example like this below in a comma delimited format_
+
+```json
+"HAPROXY_0_VHOST": "public-agent-mbernadin-tfbb33.ukwest.cloudapp.azure.com,mbernadin-tfbb33-pub-agt-elb-1287283532.us-east-1.elb.amazonaws.com"
 ```
 
 4. Deploy the application using the json editor on DC/OS UI or using the DC/OS CLI. 
