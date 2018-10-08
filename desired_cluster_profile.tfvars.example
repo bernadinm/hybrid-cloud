@@ -20,13 +20,21 @@ aws_group_3_public_agent_az = "c"
 num_of_public_agent_group_1 = "0"
 num_of_public_agent_group_2 = "0"
 num_of_public_agent_group_3 = "1"
-# ----- Remote Region Below
+# ----- Azure Cloud Below
 azure_region = "UK West"
 num_of_azure_private_agents = "1"
 num_of_azure_public_agents  = "1" 
 # azure_public_agent_instance_type = "Standard_D3_v2"
 # azure_agent_instance_type = "Standard_D3_v2"
 # azure_bootstrap_instance_type = "Standard_D3_v2"
+# ------ AWS Remote Region Below
+aws_remote_region = "us-west-2"
+aws_group_1_remote_agent_az = "a"
+aws_group_2_remote_agent_az = "b"
+aws_group_3_remote_agent_az = "c"
+num_of_remote_private_agents_group_1 = "1"
+num_of_remote_private_agents_group_2 = "0"
+num_of_remote_private_agents_group_3 = "0"
 # ----- DCOS Config Below
 dcos_security = "permissive"
 dcos_cluster_name = "Hybrid-Cloud"
