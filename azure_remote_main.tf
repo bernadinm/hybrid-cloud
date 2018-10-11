@@ -3,6 +3,11 @@ variable "azure_remote_region" {
   default = "UK South"
 }
 
+# Used to manage remote Azure region
+variable "num_of_remote_azure_private_agents" {
+  default = "1"
+}
+
 # Create a resource group
 resource "azurerm_resource_group" "dcos_remote" {
   name     = "dcos-remote-${data.template_file.cluster-name.rendered}"

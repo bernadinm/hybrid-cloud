@@ -1,6 +1,6 @@
 # Private Agents
 resource "azurerm_managed_disk" "agent_managed_disk_remote" {
-  count                = "${var.num_of_azure_private_agents}"
+  count                = "${var.num_of_remote_azure_private_agents}"
   name                 = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
   location             = "${var.azure_remote_region}"
   resource_group_name  = "${azurerm_resource_group.dcos_remote.name}"
@@ -11,7 +11,7 @@ resource "azurerm_managed_disk" "agent_managed_disk_remote" {
 
 # Public IP addresses
 resource "azurerm_public_ip" "agent_public_ip_remote" {
-  count                        = "${var.num_of_azure_private_agents}"
+  count                        = "${var.num_of_remote_azure_private_agents}"
   name                         = "${data.template_file.cluster-name.rendered}-agent-pub-ip-${count.index + 1}"
   location                     = "${var.azure_remote_region}"
   resource_group_name          = "${azurerm_resource_group.dcos_remote.name}"
@@ -88,7 +88,7 @@ resource "azurerm_network_interface" "agent_nic_remote" {
   resource_group_name       = "${azurerm_resource_group.dcos_remote.name}"
   network_security_group_id = "${azurerm_network_security_group.agent_security_group_remote.id}"
   enable_ip_forwarding      = "true"
-  count                     = "${var.num_of_azure_private_agents}"
+  count                     = "${var.num_of_remote_azure_private_agents}"
 
   ip_configuration {
    name                                    = "${data.template_file.cluster-name.rendered}-${count.index}-ipConfig"
@@ -121,7 +121,7 @@ resource "azurerm_virtual_machine" "agent_remote" {
     network_interface_ids            = ["${azurerm_network_interface.agent_nic_remote.*.id[count.index]}"]
     availability_set_id              = "${azurerm_availability_set.agent_av_set_remote.id}"
     vm_size                          = "${var.azure_agent_instance_type}"
-    count                            = "${var.num_of_azure_private_agents}"
+    count                            = "${var.num_of_remote_azure_private_agents}"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
 
@@ -212,7 +212,7 @@ module "azure-dcos-mesos-agent_remote" {
 
 resource "null_resource" "agent_remote" {
   # If state is set to none do not install DC/OS
-  count = "${var.state == "none" ? 0 : var.num_of_azure_private_agents}"
+  count = "${var.state == "none" ? 0 : var.num_of_remote_azure_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
@@ -227,7 +227,7 @@ resource "null_resource" "agent_remote" {
     agent = "${local.agent}"
   }
 
-  count = "${var.num_of_azure_private_agents}"
+  count = "${var.num_of_remote_azure_private_agents}"
 
   # Generate and upload Agent script to node
   provisioner "file" {
