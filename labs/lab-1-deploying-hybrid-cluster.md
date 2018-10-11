@@ -41,7 +41,7 @@ az vm image accept-terms --urn "cisco:cisco-csr-1000v:16_6:16.6.120170804"
 
 ```bash
 mkdir hybridcloud-demo && cd hybridcloud-demo
-terraform init -from-module github.com/bernadinm/hybrid-cloud
+terraform init -from-module github.com/bernadinm/hybrid-cloud?ref=multi-region
 cp desired_cluster_profile.tfvars.example desired_cluster_profile.tfvars
 ```
 
