@@ -158,7 +158,7 @@ module "aws_csr_userdata" {
 }
 
 data "template_file" "aws-terraform-dcos-default-cidr" {
-  template = "$${cloud == "azure" ? "10.32.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
+  template = "$${cloud == "azure" ? "10.32.0.0/15" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
 
   vars {
     cloud = "${var.remote_terraform_dcos_destination_provider}"
