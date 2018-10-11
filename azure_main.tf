@@ -10,7 +10,7 @@ resource "random_id" "cluster" {
 
 # Create a resource group
 resource "azurerm_resource_group" "dcos" {
-  name     = "dcos-${data.template_file.cluster-name.rendered}"
+  name     = "dcos-main-${data.template_file.cluster-name.rendered}"
   location = "${var.azure_region}"
 
   tags { 
