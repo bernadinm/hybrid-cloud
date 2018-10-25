@@ -416,7 +416,7 @@ resource "null_resource" "public-agent-remote" {
 }
 
 output "Azure Public Agent ELB Address-remote" {
-  value = "${azurerm_public_ip.public_agent_load_balancer_public_ip.fqdn}"
+  value = "${azurerm_public_ip.public_agent_load_balancer_public_ip-remote.fqdn}"
 }
 
 output "Public Agent Public IPs-remote" {
