@@ -49,7 +49,7 @@ resource "azurerm_lb" "public_agent_public_load_balancer-remote" {
 
   frontend_ip_configuration {
     name                 = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
-    public_ip_address_id = "${azurerm_public_ip.public_agent_load_balancer_public_ip.id}"
+    public_ip_address_id = "${azurerm_public_ip.public_agent_load_balancer_public_ip-remote.id}"
   }
 
   tags { 
@@ -62,41 +62,41 @@ resource "azurerm_lb" "public_agent_public_load_balancer-remote" {
 resource "azurerm_lb_backend_address_pool" "external_public_agent_backend_pool-remote" {
   name                = "${data.template_file.cluster-name.rendered}-remote-public_backend_address_pool"
   resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
-  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
+  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
 }
 
 # Load Balancer Rule
 resource "azurerm_lb_rule" "agent_public_load_balancer_http_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
-  loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer.id}"
+  loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPRule"
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.external_public_agent_backend_pool.id}"
-  probe_id                       = "${azurerm_lb_probe.agent_load_balancer_http_probe.id}"
-  depends_on                     = ["azurerm_lb_probe.agent_load_balancer_http_probe"]
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.external_public_agent_backend_pool-remote.id}"
+  probe_id                       = "${azurerm_lb_probe.agent_load_balancer_http_probe-remote.id}"
+  depends_on                     = ["azurerm_lb_probe.agent_load_balancer_http_probe-remote"]
 }
 
 # Load Balancer Rule
 resource "azurerm_lb_rule" "agent_public_load_balancer_https_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
-  loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer.id}"
+  loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPSRule"
   protocol                       = "Tcp"
   frontend_port                  = 443
   backend_port                   = 443
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.external_public_agent_backend_pool.id}"
-  probe_id                       = "${azurerm_lb_probe.agent_load_balancer_https_probe.id}"
-  depends_on                     = ["azurerm_lb_probe.agent_load_balancer_https_probe"]
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.external_public_agent_backend_pool-remote.id}"
+  probe_id                       = "${azurerm_lb_probe.agent_load_balancer_https_probe-remote.id}"
+  depends_on                     = ["azurerm_lb_probe.agent_load_balancer_https_probe-remote"]
 }
 
 #LB Probe - Checks to see which VMs are healthy and available
 resource "azurerm_lb_probe" "agent_load_balancer_http_probe-remote" {
   resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
-  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
+  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                = "HTTP"
   port                = 80
 }
@@ -104,7 +104,7 @@ resource "azurerm_lb_probe" "agent_load_balancer_http_probe-remote" {
 #LB Probe - Checks to see which VMs are healthy and available
 resource "azurerm_lb_probe" "agent_load_balancer_https_probe-remote" {
   resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
-  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer.id}"
+  loadbalancer_id     = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                = "HTTPS"
   port                = 443
 }
@@ -246,11 +246,11 @@ resource "azurerm_network_interface" "public_agent_nic-remote" {
   count                     = "${var.num_of_remote_azure_public_agents}"
 
   ip_configuration {
-   name                                    = "${data.template_file.cluster-name.rendered}-remote-${count.index}-ipConfig"
-   subnet_id                               = "${azurerm_subnet.public.id}"
+   name                                    = "${data.template_file.cluster-name.rendered}-pub-remote-${count.index}-ipConfig"
+   subnet_id                               = "${azurerm_subnet.public_remote.id}"
    private_ip_address_allocation           = "dynamic"
    public_ip_address_id                    = "${element(azurerm_public_ip.public_agent_public_ip-remote.*.id, count.index)}"
-   load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.external_public_agent_backend_pool.id}"]
+   load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.external_public_agent_backend_pool-remote.id}"]
   }
 
   tags { 
