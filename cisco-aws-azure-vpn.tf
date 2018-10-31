@@ -6,7 +6,7 @@ module "aws_azure_cisco_vpn_connecter" {
   vpc_id = "${aws_vpc.default.id}"
   aws_region = "${var.aws_region}"
   aws_profile = "${var.aws_profile}"
-  ssh_key_name = "default"
+  ssh_key_name = "${var.ssh_key_name}"
   aws_instance_type = "c4.large"
   azure_region = "${var.azure_region}"
   vnet_name    = "${azurerm_virtual_network.vnet.name}"
