@@ -9,6 +9,7 @@ variable "aws_group_1_remote_public_agent_az" {
 }
 
 resource "aws_instance" "remote_public_agent-group-1" {
+  provider = "aws.bursted-vpc"
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
@@ -35,22 +36,22 @@ resource "aws_instance" "remote_public_agent-group-1" {
   }
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${module.aws-tested-oses.aws_ami}"
+  ami = "${module.aws-tested-oses-bursted.aws_ami}"
 
   # The name of our SSH keypair we created above.
   key_name = "${var.ssh_key_name}"
 
   # Our Security group to allow http and SSH access
-  vpc_security_group_ids = ["${aws_security_group.public_slave.id}", "${aws_security_group.http-https.id}", "${aws_security_group.any_access_internal.id}", "${aws_security_group.ssh.id}", "${aws_security_group.internet-outbound.id}"]
+  vpc_security_group_ids = ["${aws_security_group.group_public_slave.id}","${aws_security_group.group_admin.id}","${aws_security_group.group_any_access_internal.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.default_group_1_public.id}"
+  subnet_id = "${aws_subnet.group_1_private.id}"
 
   # OS init script
   provisioner "file" {
-   content = "${module.aws-tested-oses.os-setup}"
+   content = "${module.aws-tested-oses-bursted.os-setup}"
    destination = "/tmp/os-setup.sh"
    }
 
@@ -67,7 +68,7 @@ resource "aws_instance" "remote_public_agent-group-1" {
   lifecycle {
     ignore_changes = ["tags.Name"]
   }
-  availability_zone = "${var.aws_region}${var.aws_group_1_remote_public_agent_az}"
+  availability_zone = "${var.aws_remote_region}${var.aws_group_1_remote_public_agent_az}"
 }
 
 # Execute generated script on agent
@@ -82,7 +83,7 @@ resource "null_resource" "remote_public_agent-group-1" {
   # So we just choose the first in this case
   connection {
     host = "${element(aws_instance.remote_public_agent-group-1.*.public_ip, count.index)}"
-    user = "${module.aws-tested-oses.user}"
+    user = "${module.aws-tested-oses-bursted.user}"
   }
 
   count = "${var.num_of_remote_public_agent_group_1}"
