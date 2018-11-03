@@ -31,7 +31,7 @@ resource "aws_instance" "remote_public_agent-group-1" {
   tags {
    owner = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
    expiration = "${var.expiration}"
-   Name =  "${data.template_file.cluster-name.rendered}-pubagt-${count.index + 1}"
+   Name =  "${data.template_file.cluster-name.rendered}-remote-pubagt-${var.aws_group_1_remote_public_agent_az}${count.index + 1}"
    cluster = "${data.template_file.cluster-name.rendered}"
   }
   # Lookup the correct AMI based on the region
