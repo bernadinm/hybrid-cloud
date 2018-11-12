@@ -6,7 +6,7 @@
 
 For Example
 
-https://<master-ip>/service/cassandra/v1/seeds 
+https://\<master-ip\>/service/cassandra/v1/seeds 
 
 and record the list of addresses provided in that JSON blob. (Most likely "node-0-server.cassandra.autoip.dcos.thisdcos.directory" and "node-1-server.cassandra.autoip.dcos.thisdcos.directory").
 
