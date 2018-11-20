@@ -46,7 +46,7 @@ resource "aws_security_group" "group_any_access_internal" {
   from_port = 0
   to_port = 0
   protocol = "-1"
-  cidr_blocks = ["${aws_vpc.bursted_region.cidr_block}"]
+  cidr_blocks = ["10.0.0.0/8"]
   }
 
  # full access internally
@@ -54,7 +54,7 @@ resource "aws_security_group" "group_any_access_internal" {
   from_port = 0
   to_port = 0
   protocol = "-1"
-  cidr_blocks = ["${aws_vpc.bursted_region.cidr_block}"]
+  cidr_blocks = ["10.0.0.0/8"]
   }
 }
 
@@ -109,7 +109,7 @@ resource "aws_security_group" "group_private_slave" {
    from_port = 0
    to_port = 0
    protocol = "-1"
-   cidr_blocks = ["${aws_vpc.default.cidr_block}"]
+   cidr_blocks = ["10.0.0.0/8"]
    }
 
   # full access internally
@@ -117,7 +117,7 @@ resource "aws_security_group" "group_private_slave" {
    from_port = 0
    to_port = 0
    protocol = "-1"
-   cidr_blocks = ["${aws_vpc.default.cidr_block}"]
+   cidr_blocks = ["10.0.0.0/8"]
    }
 }
 
@@ -181,7 +181,7 @@ resource "aws_security_group" "group_public_slave" {
    from_port = 0
    to_port = 0
    protocol = "-1"
-   cidr_blocks = ["${aws_vpc.default.cidr_block}"]
+   cidr_blocks = ["10.0.0.0/8"]
    }
 
   # full access internally
@@ -189,7 +189,7 @@ resource "aws_security_group" "group_public_slave" {
    from_port = 0
    to_port = 0
    protocol = "-1"
-   cidr_blocks = ["${aws_vpc.default.cidr_block}"]
+   cidr_blocks = ["10.0.0.0/8"]
    }
 
   tags {
