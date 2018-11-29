@@ -112,8 +112,8 @@ resource "null_resource" "remote_public_agent-group-1" {
   # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.  
   provisioner "remote-exec" {
     inline = [
-     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json",
-     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json"
+     "sudo sed -i.bak '131 s/1s/5s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true"
     ]
   }
 
