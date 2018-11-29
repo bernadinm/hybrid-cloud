@@ -484,6 +484,11 @@ variable "dcos_rexray_config" {
  default = ""
 }
 
+variable "dcos_dns_forward_zones" {
+  default = ""
+  description = "This parameter specifies how to route DNS traffic via dcos-spartan"
+}
+
 variable "state" {
  default = "install"
  description = "Support installing or Upgrading DC/OS"

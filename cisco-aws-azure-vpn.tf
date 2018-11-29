@@ -1,5 +1,7 @@
 variable "cisco_user" { default = "mesosphere" }
 variable "cisco_password" { default = "MesosphereR0cks" }
+variable "cisco_azure_instance_type" { default = "c4.4xlarge"}
+variable "cisco_aws_instance_type" { default = "Standard_A4m_v2"}
 
 module "aws_azure_cisco_vpn_connecter" {
   source = "modules/cisco-csr-aws-oneshot"
@@ -7,7 +9,8 @@ module "aws_azure_cisco_vpn_connecter" {
   aws_region = "${var.aws_region}"
   aws_profile = "${var.aws_profile}"
   ssh_key_name = "${var.ssh_key_name}"
-  aws_instance_type = "c4.large"
+  aws_instance_type = "${var.cisco_aws_instance_type}"
+  cisco_azure_instance_type = "${var.cisco_azure_instance_type}"
   azure_region = "${var.azure_region}"
   vnet_name    = "${azurerm_virtual_network.vnet.name}"
   rg_name      = "${azurerm_resource_group.dcos.name}"

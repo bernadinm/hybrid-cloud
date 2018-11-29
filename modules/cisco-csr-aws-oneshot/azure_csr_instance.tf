@@ -168,7 +168,7 @@ resource "azurerm_virtual_machine" "cisco" {
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
     primary_network_interface_id     = "${azurerm_network_interface.cisco_nic_0.id}"
     network_interface_ids            = ["${azurerm_network_interface.cisco_nic_0.id}", "${azurerm_network_interface.cisco_nic_1.id}"]
-    vm_size = "Standard_D2_v2"
+    vm_size                          = "${var.cisco_azure_instance_type}"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
 
@@ -177,7 +177,7 @@ resource "azurerm_virtual_machine" "cisco" {
         product = "cisco-csr-1000v"
         publisher = "cisco"
     }
-    vm_size = "Standard_D2_v2"
+
     storage_image_reference {
         publisher = "cisco"
         offer = "cisco-csr-1000v"

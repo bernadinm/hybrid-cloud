@@ -41,9 +41,21 @@ num_of_remote_private_agents_group_3 = "0"
 num_of_remote_public_agent_group_1 = "1"
 num_of_remote_public_agent_group_2 = "0"
 num_of_remote_public_agent_group_3 = "0"
+# ------ Cisco CSR Router Below
+cisco_aws_instance_type = "c4.4xlarge"
+cisco_azure_instance_type = "Standard_A4m_v2"
 # ----- DCOS Config Below
 dcos_security = "permissive"
 dcos_cluster_name = "Hybrid-Cloud"
 aws_profile = "110465657741_Mesosphere-PowerUser"
+dcos_dns_forward_zones =<<EOF
+#YAML
+  amazonaws.com:
+    - 169.254.169.254
+  compute.internal:
+    - 169.254.169.254
+  azure.com:
+    - 168.63.129.16
+EOF
 dcos_license_key_contents = "<INSERT_LICENSE_HERE>"
 ssh_pub_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCJtEX2fuZ4EWXCL3M37Qbr0mj3saEdhOwnLGJk8hr5xFOa8DoTs5IofaHfeRoiOKwfg44PW4fpDIz/e7X/9tmKTuwOszuAE9QTWQijZesCanLSf5nwYCTMsNGlUfxhjpJhcgQIcZ6vcDbNeGIQTElgsBKXoIXDosP3qjdWuwEEIfaQJDo4Mv16P+SqzPJ1KIV16lfw2NW71y7JzNApPRWxlxkoTiydv1hs6Ye6b6MTLLeDIsyzPqNro5/LpQkT7hr37pG88xC22Cn2lA18hhusP0wP+6pZbnbveKLVFkSdVlZAKgsEZ0UyAXsKElWtTHN+SXuqXmldg8h7n6GF1/tmEz7n/2+SBH+nNBlQPM/VOxW7yDwCKWr87mFI009a6ge66U4q+lqrfKzNSIsoamuICYg8GtAGK3yuPQq+pwFluJRUEihZQDlJ7IvezAKThglyDgV31D9frCqJ4gMTfzSnZ2PW54vJjNyAHZQoCqp/Y0aIdjwpnHw6F+blPmgXzzsheMahME7iCMQP1F/ckgXfq1rtI0mT1QNZhUtfFf1qYguNT0EdCGy3G3oWnHiIqjcq/wfhCTpf22ph7h1Q+b1ygXXIGnQWfyY/vZTDdW2lbrX36X/fZA3M74SBmQFEMWrul4tX//YwGtpHSyN380fdRHyCPPo6+BSB7KHVwDevw== default@mesosphere.com"
