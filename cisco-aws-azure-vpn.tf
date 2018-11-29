@@ -1,7 +1,7 @@
 variable "cisco_user" { default = "mesosphere" }
 variable "cisco_password" { default = "MesosphereR0cks" }
-variable "cisco_azure_instance_type" { default = "c4.4xlarge"}
-variable "cisco_aws_instance_type" { default = "Standard_A4m_v2"}
+variable "cisco_azure_instance_type" { default = "Standard_A4m_v2"}
+variable "cisco_aws_instance_type" { default = "c4.4xlarge"}
 
 module "aws_azure_cisco_vpn_connecter" {
   source = "modules/cisco-csr-aws-oneshot"
