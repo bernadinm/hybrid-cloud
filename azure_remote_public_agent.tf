@@ -70,7 +70,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_http_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPRule"
-  protocol                       = "Tcp"
+  protocol                       = "*"
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
@@ -84,7 +84,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_https_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPSRule"
-  protocol                       = "Tcp"
+  protocol                       = "*"
   frontend_port                  = 443
   backend_port                   = 443
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
@@ -127,7 +127,7 @@ resource "azurerm_network_security_rule" "public-agent-sshRule-remote" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -142,7 +142,7 @@ resource "azurerm_network_security_rule" "public-agent-httpRule-remote" {
     priority                    = 110
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "80"
     source_address_prefix       = "*"
@@ -156,7 +156,7 @@ resource "azurerm_network_security_rule" "public-agent-httpsRule-remote" {
     priority                    = 120
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "443"
     source_address_prefix       = "*"
@@ -170,7 +170,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeOne-remote" {
     priority                    = 130
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "0-21"
     destination_port_range      = "0-21"
     source_address_prefix       = "*"
@@ -184,7 +184,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeTwo-remote" {
     priority                    = 140
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "23-5050"
     destination_port_range      = "23-5050"
     source_address_prefix       = "*"
@@ -198,7 +198,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeThree-remote" {
     priority                    = 150
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "5052-32000"
     destination_port_range      = "5052-32000"
     source_address_prefix       = "*"
@@ -212,7 +212,7 @@ resource "azurerm_network_security_rule" "public-agent-internalEverything-remote
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
@@ -226,7 +226,7 @@ resource "azurerm_network_security_rule" "public-agent-everythingElseOutBound-re
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"

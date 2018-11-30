@@ -42,7 +42,7 @@ resource "azurerm_network_security_rule" "agent-sshRule_remote" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -57,7 +57,7 @@ resource "azurerm_network_security_rule" "agent-internalEverything_remote" {
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
@@ -71,7 +71,7 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound_remote" {
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"
