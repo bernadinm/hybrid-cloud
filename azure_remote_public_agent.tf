@@ -70,7 +70,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_http_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPRule"
-  protocol                       = "*"
+  protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
@@ -84,7 +84,7 @@ resource "azurerm_lb_rule" "agent_public_load_balancer_https_rule-remote" {
   resource_group_name            = "${azurerm_resource_group.dcos_remote.name}"
   loadbalancer_id                = "${azurerm_lb.public_agent_public_load_balancer-remote.id}"
   name                           = "HTTPSRule"
-  protocol                       = "*"
+  protocol                       = "Tcp"
   frontend_port                  = 443
   backend_port                   = 443
   frontend_ip_configuration_name = "${data.template_file.cluster-name.rendered}-remote-public-agent-ip-config"
@@ -409,8 +409,9 @@ resource "null_resource" "public-agent-remote" {
   # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
   provisioner "remote-exec" {
     inline = [
-     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true",
-     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true"
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true",
+     "sudo sed -i.bak '140 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-check-config.json &> /dev/null || true",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true"
     ]
   }
 }
