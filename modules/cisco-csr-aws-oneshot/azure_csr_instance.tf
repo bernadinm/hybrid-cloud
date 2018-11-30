@@ -1,11 +1,11 @@
 resource "random_id" "id" {
   byte_length = 2
-  prefix      = "${var.cluster_name}"
+ # prefix      = "${var.cluster_name}"
 }
 
-locals {
-  cluster_name = "${var.cluster_name_random_string ? random_id.id.hex : var.cluster_name}"
-}
+#locals {
+#  cluster_name = "${var.cluster_name_random_string ? random_id.id.hex : var.cluster_name}"
+#}
 
 data "azurerm_resource_group" "rg" {
   name = "${var.rg_name}"
@@ -196,7 +196,7 @@ resource "azurerm_virtual_machine" "cisco" {
 
 
   storage_os_disk {
-    name              = "cisco_disk-os"
+    name              = "cisco_disk-os-${random_id.id.hex}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -275,7 +275,8 @@ output "azure_ssh_user" {
 }
 
 data "template_file" "azure-terraform-dcos-default-cidr" {
-  template = "$${cloud == "aws" ? "10.0.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
+  # template = "$${cloud == "aws" ? "10.0.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
+  template = "$${cloud == "aws" ? "${data.aws_vpc.current.cidr_block}" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
 
   vars {
     cloud = "${var.local_terraform_dcos_destination_provider}"

@@ -17,16 +17,16 @@ module "remote_aws_azure_cisco_vpn_connecter" {
   azure_docker_utility_node_username = "${module.azure-tested-oses.user}"
   cisco_user = "${var.cisco_user}"
   cisco_password = "${var.cisco_password}"
-  public_subnet_private_ip_address_suffix = "250.210"
+  public_subnet_private_ip_address_suffix = "250.215"
   public_subnet_subnet_suffix_cidrblock =  "250.208/28"
-  private_subnet_private_ip_address_suffix = "250.200"
+  private_subnet_private_ip_address_suffix = "250.205"
   private_subnet_subnet_suffix_cidrblock = "250.192/28"
 }
 
 output "Remote AWS Cisco CSR VPN Router Public IP Address" {
- value = "${module.aws_azure_cisco_vpn_connecter.aws_public_ip_address}"
+ value = "${module.remote_aws_azure_cisco_vpn_connecter.aws_public_ip_address}"
 }
 
 output "Remote Azure Cisco CSR VPN Router Public IP Address" {
- value = "${module.aws_azure_cisco_vpn_connecter.azure_public_ip_address}"
+ value = "${module.remote_aws_azure_cisco_vpn_connecter.azure_public_ip_address}"
 }
