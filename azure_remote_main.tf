@@ -37,22 +37,6 @@ resource "azurerm_virtual_network" "vnet_remote" {
   }
 }
 
-resource "azurerm_route_table" "private_remote" {
-# TODO(mbernadin): current data azurerm_subnet does not support associating
-# existing resources with routing tables. Creating this one to make hybrid cloud
-# work explicitly 
-    name = "dcos_remote_cisco_vpn_route_table"
-    location = "${var.azure_remote_region}"
-    resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
-
-    route {
-        name = "RemoteCiscoRouter"
-        address_prefix = "${aws_vpc.default.cidr_block}"
-        next_hop_type = "VirtualAppliance"
-        next_hop_in_ip_address = "${module.aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
-    }
-}
-
 resource "azurerm_subnet" "public_remote" {
   name                      = "public_remote"
   address_prefix            = "10.33.0.0/22"
@@ -127,4 +111,27 @@ resource "azurerm_network_security_rule" "public-subnet-httpsRule_remote" {
 
 output "ssh_user_remote" {
  value = "${module.azure-tested-oses.user}"
+}
+
+resource "azurerm_route_table" "private_remote" {
+# TODO(mbernadin): current data azurerm_subnet does not support associating
+# existing resources with routing tables. Creating this one to make hybrid cloud
+# work explicitly
+    name = "dcos_remote_cisco_vpn_route_table"
+    location = "${var.azure_remote_region}"
+    resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
+
+    route {
+        name = "RemoteCiscoRouter"
+        address_prefix = "${aws_vpc.default.cidr_block}"
+        next_hop_type = "VirtualAppliance"
+        next_hop_in_ip_address = "${module.aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
+    }
+
+    route {
+        name = "RemoteCiscoRouter-Spoke"
+        address_prefix = "${aws_vpc.bursted_region.cidr_block}"
+        next_hop_type = "VirtualAppliance"
+        next_hop_in_ip_address = "${module.remote_aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
+    }
 }
