@@ -127,7 +127,7 @@ resource "azurerm_network_security_rule" "public-agent-sshRule" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -142,7 +142,7 @@ resource "azurerm_network_security_rule" "public-agent-httpRule" {
     priority                    = 110
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "80"
     source_address_prefix       = "*"
@@ -156,7 +156,7 @@ resource "azurerm_network_security_rule" "public-agent-httpsRule" {
     priority                    = 120
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "443"
     source_address_prefix       = "*"
@@ -170,7 +170,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeOne" {
     priority                    = 130
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "0-21"
     destination_port_range      = "0-21"
     source_address_prefix       = "*"
@@ -184,7 +184,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeTwo" {
     priority                    = 140
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "23-5050"
     destination_port_range      = "23-5050"
     source_address_prefix       = "*"
@@ -198,7 +198,7 @@ resource "azurerm_network_security_rule" "public-agent-RangeThree" {
     priority                    = 150
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "5052-32000"
     destination_port_range      = "5052-32000"
     source_address_prefix       = "*"
@@ -212,7 +212,7 @@ resource "azurerm_network_security_rule" "public-agent-internalEverything" {
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
@@ -226,7 +226,7 @@ resource "azurerm_network_security_rule" "public-agent-everythingElseOutBound" {
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"
@@ -409,8 +409,9 @@ resource "null_resource" "public-agent" {
   # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
   provisioner "remote-exec" {
     inline = [
-     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true",
-     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true"
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true",
+     "sudo sed -i.bak '140 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-check-config.json &> /dev/null || true",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true"
     ]
   }
 }

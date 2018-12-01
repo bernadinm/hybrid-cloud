@@ -1,3 +1,12 @@
+resource "random_id" "id" {
+  byte_length = 2
+ # prefix      = "${var.cluster_name}"
+}
+
+#locals {
+#  cluster_name = "${var.cluster_name_random_string ? random_id.id.hex : var.cluster_name}"
+#}
+
 data "azurerm_resource_group" "rg" {
   name = "${var.rg_name}"
 }
@@ -8,7 +17,7 @@ data "azurerm_virtual_network" "current" {
 }
 
 resource "azurerm_subnet" "public" {
-  name                 = "cisco-csr-subnet-public"
+  name                 = "cisco-csr-subnet-public-${random_id.id.hex}"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.public_azure_csr_subnet_cidr_block}"
@@ -16,7 +25,7 @@ resource "azurerm_subnet" "public" {
 }
 
 resource "azurerm_subnet" "private" {
-  name                 = "cisco-csr-subnet-private"
+  name                 = "cisco-csr-subnet-private-${random_id.id.hex}"
   virtual_network_name = "${data.azurerm_virtual_network.current.name}"
   resource_group_name  = "${data.azurerm_resource_group.rg.name}"
   address_prefix       = "${local.private_azure_csr_subnet_cidr_block}"
@@ -31,7 +40,7 @@ locals {
 }
 
 resource "azurerm_route_table" "private" {
-    name = "private_cisco_vpn_route_table"
+    name = "private_cisco_vpn_route_table-${random_id.id.hex}"
     location = "${var.azure_region}"
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
 
@@ -44,7 +53,7 @@ resource "azurerm_route_table" "private" {
 }
 
 resource "azurerm_public_ip" "cisco" {
-  name                         = "cisco-pip"
+  name                         = "cisco-pip-${random_id.id.hex}"
   location                     = "${var.azure_region}"
   resource_group_name          = "${data.azurerm_resource_group.rg.name}"
   public_ip_address_allocation = "static"
@@ -52,7 +61,7 @@ resource "azurerm_public_ip" "cisco" {
 
 # Agent Security Groups for NICs
 resource "azurerm_network_security_group" "cisco_security_group" {
-  name                         = "cisco-csr-security-group"
+  name                         = "cisco-csr-security-group-${random_id.id.hex}"
   location = "${var.azure_region}"
   resource_group_name = "${data.azurerm_resource_group.rg.name}"
 }
@@ -130,7 +139,7 @@ resource "azurerm_network_security_rule" "cisco_everythingElseOutBound" {
 
 # Agent NICs with Security Group
 resource "azurerm_network_interface" "cisco_nic_0" {
-  name                      = "cisco-nic-0"
+  name                      = "cisco-nic-0-${random_id.id.hex}"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
   network_security_group_id = "${azurerm_network_security_group.cisco_security_group.id}"
@@ -138,7 +147,7 @@ resource "azurerm_network_interface" "cisco_nic_0" {
 
   ip_configuration {
    primary                                 = "true"
-   name                                    = "cisco_ipConfig-0"
+   name                                    = "cisco_ipConfig-0-${random_id.id.hex}"
    subnet_id                               = "${azurerm_subnet.public.id}"
    private_ip_address_allocation           = "static"
    private_ip_address                      = "${local.public_azure_csr_private_ip}"
@@ -148,13 +157,13 @@ resource "azurerm_network_interface" "cisco_nic_0" {
 
 # Agent NICs with Security Group
 resource "azurerm_network_interface" "cisco_nic_1" {
-  name                      = "cisco-nic-1"
+  name                      = "cisco-nic-1-${random_id.id.hex}"
   location                  = "${var.azure_region}"
   resource_group_name       = "${data.azurerm_resource_group.rg.name}"
   enable_ip_forwarding      = "true"
 
   ip_configuration {
-   name                                    = "cisco_ipConfig-1"
+   name                                    = "cisco_ipConfig-1-${random_id.id.hex}"
    subnet_id                               = "${azurerm_subnet.private.id}"
    private_ip_address_allocation           = "static"
    private_ip_address                      = "${local.private_azure_csr_private_ip}"
@@ -163,7 +172,7 @@ resource "azurerm_network_interface" "cisco_nic_1" {
 
 # Agent VM Coniguration
 resource "azurerm_virtual_machine" "cisco" {
-    name                             = "cisco-csr"
+    name                             = "cisco-csr-${random_id.id.hex}"
     location                         = "${var.azure_region}"
     resource_group_name              = "${data.azurerm_resource_group.rg.name}"
     primary_network_interface_id     = "${azurerm_network_interface.cisco_nic_0.id}"
@@ -187,7 +196,7 @@ resource "azurerm_virtual_machine" "cisco" {
 
 
   storage_os_disk {
-    name              = "cisco_disk-os"
+    name              = "cisco_disk-os-${random_id.id.hex}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -266,7 +275,8 @@ output "azure_ssh_user" {
 }
 
 data "template_file" "azure-terraform-dcos-default-cidr" {
-  template = "$${cloud == "aws" ? "10.0.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
+  # template = "$${cloud == "aws" ? "10.0.0.0/16" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
+  template = "$${cloud == "aws" ? "${data.aws_vpc.current.cidr_block}" : cloud == "gcp" ? "10.64.0.0/16" : "undefined"}"
 
   vars {
     cloud = "${var.local_terraform_dcos_destination_provider}"

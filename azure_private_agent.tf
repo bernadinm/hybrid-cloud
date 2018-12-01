@@ -42,7 +42,7 @@ resource "azurerm_network_security_rule" "agent-sshRule" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -57,7 +57,7 @@ resource "azurerm_network_security_rule" "agent-internalEverything" {
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
@@ -71,7 +71,7 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"
@@ -253,8 +253,9 @@ resource "null_resource" "agent" {
   # Mesos poststart check workaround. Engineering JIRA filed to Mesosphere team to fix.
   provisioner "remote-exec" {
     inline = [
-     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true",
-     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json dcos-diagnostics-runner-config.json &> /dev/null || true"
+     "sudo sed -i.bak '131 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true",
+     "sudo sed -i.bak '140 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-check-config.json &> /dev/null || true",
+     "sudo sed -i.bak '162 s/1s/10s/' /opt/mesosphere/packages/dcos-config--setup*/etc/dcos-diagnostics-runner-config.json &> /dev/null || true"
     ]
   }
 }

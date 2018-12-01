@@ -41,7 +41,7 @@ resource "azurerm_network_security_rule" "bootstrap-sshRule" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -56,7 +56,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpRule" {
     priority                    = 110
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "80"
     source_address_prefix       = "*"
@@ -70,7 +70,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpsRule" {
     priority                    = 120
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "443"
     source_address_prefix       = "*"
@@ -84,7 +84,7 @@ resource "azurerm_network_security_rule" "bootstrap-internalEverything" {
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
@@ -98,7 +98,7 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"
