@@ -51,9 +51,9 @@ aws_profile = "110465657741_Mesosphere-PowerUser"
 dcos_dns_forward_zones =<<EOF
 #YAML
   amazonaws.com:
-    - 169.254.169.254
+    - 169.254.169.253
   compute.internal:
-    - 169.254.169.254
+    - 169.254.169.253
   azure.com:
     - 168.63.129.16
 EOF
