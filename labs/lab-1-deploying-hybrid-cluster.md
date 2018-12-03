@@ -201,6 +201,43 @@ Public Agent Public IPs = [
 ssh_user = core
 ```
 
+## V. Changing AWS Default MTU TCP Value to Match Hybrid Cloud Envs
+
+For hybrid cloud environments, in order for a proper stream of packets to flow between different cloud providers, they must all be ideally using the same MTU. If the source packet is using a higher MTU byte, the packets won't be able to arrive to the desitioation as the packet size is to large to be understood. A good solution here to have this perform in an automated method, which will be coming soon to this repo, is to enable PMTUD (Path MTU Discovery). In the meantime here is a workaround to match all the cloud providers. 
+
+On each machine this command can be run:
+
+```bash
+sudo ip link set dev eth0 mtu 1500
+```
+
+You can verify if it is set by running:
+
+```bash
+ip a | grep eth0 | grep mtu
+```
+
+If you dont want to log into all the machines, you can run this command via ssh agent forward and it can log into all the machines for you. All the ssh keys needs to be in the ssh-agent for this to work for all host:
+
+Verify Current Setting:
+
+```bash
+ssh -A core@<master-ip>
+for i in $(host slave.mesos | cut -d " " -f 4); do ssh $i -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  -SsL "ip a | grep eth0 | grep mtu" ;done
+for i in $(host master.mesos | cut -d " " -f 4); do ssh $i -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  -SsL "ip a | grep eth0 | grep mtu" ;done
+```
+
+Set new settings on all machines quickly:
+
+```bash
+ssh -A core@<master-ip> # skip if you're already on the master
+for i in $(host slave.mesos | cut -d " " -f 4); do ssh $i -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  -SsL "sudo ip link set dev eth0 mtu 1500" ;done
+for i in $(host master.mesos | cut -d " " -f 4); do ssh $i -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  -SsL "sudo ip link set dev eth0 mtu 1500" ;done
+```
+
+You can go back to the command above this one to reverify the changes are made cluster wide.
+
+
 ### Destroy Cluster
 
 For the purpose of this lab we will be keeping our cluster up and running, but if you needed to destroy your cluster for any reason now, here is the command: 
