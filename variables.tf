@@ -427,7 +427,7 @@ variable "dcos_previous_version" {
 }
 
 variable "dcos_version" {
- default = "1.10.2"
+ default = "1.12.1"
  description = "DCOS Version"
 }
 

@@ -18,7 +18,7 @@ Change the number of remote nodes in the desired cluster profile.
 At the end of your change it should look like this:
 
 ```bash 
-dcos_version = "1.11.3"
+dcos_version = "1.12.1"
 num_of_masters = "1"
 aws_region = "us-east-1"
 aws_master_instance_type = "m4.xlarge"
