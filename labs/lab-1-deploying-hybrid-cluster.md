@@ -75,13 +75,12 @@ Team 10:
 Now use maws to login to retrieve your temporary account credentials
 
 ```
-maws login 110465657741_Mesosphere-PowerUser
+eval $(maws login 110465657741_Mesosphere-PowerUser)
 ```
 
 Your output should look something like this
 ```
 retrieved credentials writing to profile 110465657741_Mesosphere-PowerUser
-export AWS_PROFILE=110465657741_Mesosphere-PowerUser
 ```
 
 Note that you will have to refresh the credentials (use the maws login command) every 1 hour
