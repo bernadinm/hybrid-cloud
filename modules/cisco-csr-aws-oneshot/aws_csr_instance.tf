@@ -4,6 +4,10 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+resource "random_id" "name" {
+  byte_length = 4
+}
+
 data "aws_availability_zones" "available" {}
 
 data "aws_ami_ids" "cisco_csr" {
@@ -131,13 +135,13 @@ resource "null_resource" "aws_ssh_deploy" {
 
   provisioner "file" {
     content     = "${data.template_file.aws_ssh_template.rendered}"
-    destination = "aws-cisco-config.sh"
+    destination = "aws-cisco-config-${random_id.name.hex}.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x aws-cisco-config.sh",
-      "sudo ./aws-cisco-config.sh"
+      "sudo chmod +x aws-cisco-config-${random_id.name.hex}.sh",
+      "sudo ./aws-cisco-config-${random_id.name.hex}.sh"
     ]
   }
 }

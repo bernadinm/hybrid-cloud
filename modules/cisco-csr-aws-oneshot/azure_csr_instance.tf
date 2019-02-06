@@ -255,13 +255,13 @@ resource "null_resource" "azure_ssh_deploy" {
 
   provisioner "file" {
     content     = "${data.template_file.azure_ssh_template.rendered}"
-    destination = "azure-cisco-config.sh"
+    destination = "azure-cisco-config-${random_id.id.hex}.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo chmod +x azure-cisco-config.sh",
-      "sudo ./azure-cisco-config.sh"
+      "sudo chmod +x azure-cisco-config-${random_id.id.hex}.sh",
+      "sudo ./azure-cisco-config-${random_id.id.hex}.sh"
     ]
   }
 }
