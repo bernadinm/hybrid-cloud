@@ -12,4 +12,11 @@ resource "azurerm_route_table" "private" {
         next_hop_type = "VirtualAppliance"
         next_hop_in_ip_address = "${module.aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
     }
+
+    route {
+        name = "CiscoRouter-Spoke"
+        address_prefix = "${aws_vpc.bursted_region.cidr_block}"
+        next_hop_type = "VirtualAppliance"
+        next_hop_in_ip_address = "${module.remote_aws_azure_cisco_vpn_connecter.private_azure_csr_private_ip}"
+    }
 }

@@ -1,20 +1,20 @@
 # Private Agents
-resource "azurerm_managed_disk" "agent_managed_disk" {
-  count                = "${var.num_of_azure_private_agents}"
+resource "azurerm_managed_disk" "agent_managed_disk_remote" {
+  count                = "${var.num_of_remote_azure_private_agents}"
   name                 = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
-  location             = "${var.azure_region}"
-  resource_group_name  = "${azurerm_resource_group.dcos.name}"
+  location             = "${var.azure_remote_region}"
+  resource_group_name  = "${azurerm_resource_group.dcos_remote.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "${var.instance_disk_size}"
 }
 
 # Public IP addresses
-resource "azurerm_public_ip" "agent_public_ip" {
-  count                        = "${var.num_of_azure_private_agents}"
+resource "azurerm_public_ip" "agent_public_ip_remote" {
+  count                        = "${var.num_of_remote_azure_private_agents}"
   name                         = "${data.template_file.cluster-name.rendered}-agent-pub-ip-${count.index + 1}"
-  location                     = "${var.azure_region}"
-  resource_group_name          = "${azurerm_resource_group.dcos.name}"
+  location                     = "${var.azure_remote_region}"
+  resource_group_name          = "${azurerm_resource_group.dcos_remote.name}"
   public_ip_address_allocation = "dynamic"
   domain_name_label = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
 
@@ -26,10 +26,10 @@ resource "azurerm_public_ip" "agent_public_ip" {
 
 
 # Agent Security Groups for NICs
-resource "azurerm_network_security_group" "agent_security_group" {
+resource "azurerm_network_security_group" "agent_security_group_remote" {
     name = "${data.template_file.cluster-name.rendered}-agent-security-group"
-    location = "${var.azure_region}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
+    location = "${var.azure_remote_region}"
+    resource_group_name = "${azurerm_resource_group.dcos_remote.name}"
 
     tags { 
       Name       = "${coalesce(var.owner, data.external.whoami.result["owner"])}"
@@ -37,7 +37,7 @@ resource "azurerm_network_security_group" "agent_security_group" {
   }
 }
 
-resource "azurerm_network_security_rule" "agent-sshRule" {
+resource "azurerm_network_security_rule" "agent-sshRule_remote" {
     name                        = "sshRule"
     priority                    = 100
     direction                   = "Inbound"
@@ -47,12 +47,12 @@ resource "azurerm_network_security_rule" "agent-sshRule" {
     destination_port_range      = "22"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "${azurerm_resource_group.dcos.name}"
-    network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos_remote.name}"
+    network_security_group_name = "${azurerm_network_security_group.agent_security_group_remote.name}"
 }
 
 
-resource "azurerm_network_security_rule" "agent-internalEverything" {
+resource "azurerm_network_security_rule" "agent-internalEverything_remote" {
     name                        = "allOtherInternalTraffric"
     priority                    = 160
     direction                   = "Inbound"
@@ -62,11 +62,11 @@ resource "azurerm_network_security_rule" "agent-internalEverything" {
     destination_port_range      = "*"
     source_address_prefix       = "10.0.0.0/8"
     destination_address_prefix  = "*"
-    resource_group_name         = "${azurerm_resource_group.dcos.name}"
-    network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos_remote.name}"
+    network_security_group_name = "${azurerm_network_security_group.agent_security_group_remote.name}"
 }
 
-resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
+resource "azurerm_network_security_rule" "agent-everythingElseOutBound_remote" {
     name                        = "allOtherTrafficOutboundRule"
     priority                    = 170
     direction                   = "Outbound"
@@ -76,25 +76,25 @@ resource "azurerm_network_security_rule" "agent-everythingElseOutBound" {
     destination_port_range      = "*"
     source_address_prefix       = "*"
     destination_address_prefix  = "*"
-    resource_group_name         = "${azurerm_resource_group.dcos.name}"
-    network_security_group_name = "${azurerm_network_security_group.agent_security_group.name}"
+    resource_group_name         = "${azurerm_resource_group.dcos_remote.name}"
+    network_security_group_name = "${azurerm_network_security_group.agent_security_group_remote.name}"
 }
 # End of Agent NIC Security Group
 
 # Agent NICs with Security Group
-resource "azurerm_network_interface" "agent_nic" {
+resource "azurerm_network_interface" "agent_nic_remote" {
   name                      = "${data.template_file.cluster-name.rendered}-private-agent-${count.index}-nic"
-  location                  = "${var.azure_region}"
-  resource_group_name       = "${azurerm_resource_group.dcos.name}"
-  network_security_group_id = "${azurerm_network_security_group.agent_security_group.id}"
+  location                  = "${var.azure_remote_region}"
+  resource_group_name       = "${azurerm_resource_group.dcos_remote.name}"
+  network_security_group_id = "${azurerm_network_security_group.agent_security_group_remote.id}"
   enable_ip_forwarding      = "true"
-  count                     = "${var.num_of_azure_private_agents}"
+  count                     = "${var.num_of_remote_azure_private_agents}"
 
   ip_configuration {
    name                                    = "${data.template_file.cluster-name.rendered}-${count.index}-ipConfig"
-   subnet_id                               = "${azurerm_subnet.public.id}"
+   subnet_id                               = "${azurerm_subnet.public_remote.id}"
    private_ip_address_allocation           = "dynamic"
-   public_ip_address_id                    = "${element(azurerm_public_ip.agent_public_ip.*.id, count.index)}"
+   public_ip_address_id                    = "${element(azurerm_public_ip.agent_public_ip_remote.*.id, count.index)}"
   }
 
   tags { 
@@ -104,24 +104,24 @@ resource "azurerm_network_interface" "agent_nic" {
 }
 
 # Create an availability set
-resource "azurerm_availability_set" "agent_av_set" {
+resource "azurerm_availability_set" "agent_av_set_remote" {
   name                         = "${data.template_file.cluster-name.rendered}-agent-avset"
-  location                     = "${var.azure_region}"
-  resource_group_name          = "${azurerm_resource_group.dcos.name}"
+  location                     = "${var.azure_remote_region}"
+  resource_group_name          = "${azurerm_resource_group.dcos_remote.name}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 1
   managed                      = true
 }
 
 # Agent VM Coniguration
-resource "azurerm_virtual_machine" "agent" {
+resource "azurerm_virtual_machine" "agent_remote" {
     name                             = "${data.template_file.cluster-name.rendered}-agent-${count.index + 1}"
-    location                         = "${var.azure_region}"
-    resource_group_name              = "${azurerm_resource_group.dcos.name}"
-    network_interface_ids            = ["${azurerm_network_interface.agent_nic.*.id[count.index]}"]
-    availability_set_id              = "${azurerm_availability_set.agent_av_set.id}"
+    location                         = "${var.azure_remote_region}"
+    resource_group_name              = "${azurerm_resource_group.dcos_remote.name}"
+    network_interface_ids            = ["${azurerm_network_interface.agent_nic_remote.*.id[count.index]}"]
+    availability_set_id              = "${azurerm_availability_set.agent_av_set_remote.id}"
     vm_size                          = "${var.azure_agent_instance_type}"
-    count                            = "${var.num_of_azure_private_agents}"
+    count                            = "${var.num_of_remote_azure_private_agents}"
     delete_os_disk_on_termination    = true
     delete_data_disks_on_termination = true
 
@@ -140,11 +140,11 @@ resource "azurerm_virtual_machine" "agent" {
   }
 
   storage_data_disk {
-    name            = "${azurerm_managed_disk.agent_managed_disk.*.name[count.index]}"
-    managed_disk_id = "${azurerm_managed_disk.agent_managed_disk.*.id[count.index]}"
+    name            = "${azurerm_managed_disk.agent_managed_disk_remote.*.name[count.index]}"
+    managed_disk_id = "${azurerm_managed_disk.agent_managed_disk_remote.*.id[count.index]}"
     create_option   = "Attach"
     lun             = 0
-    disk_size_gb    = "${azurerm_managed_disk.agent_managed_disk.*.disk_size_gb[count.index]}"
+    disk_size_gb    = "${azurerm_managed_disk.agent_managed_disk_remote.*.disk_size_gb[count.index]}"
   }
 
   os_profile {
@@ -168,7 +168,7 @@ resource "azurerm_virtual_machine" "agent" {
    connection {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
-    host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
+    host = "${element(azurerm_public_ip.agent_public_ip_remote.*.fqdn, count.index)}"
     private_key = "${local.private_key}"
     agent = "${local.agent}"
     }
@@ -186,7 +186,7 @@ resource "azurerm_virtual_machine" "agent" {
    connection {
     type = "ssh"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
-    host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
+    host = "${element(azurerm_public_ip.agent_public_ip_remote.*.fqdn, count.index)}"
     private_key = "${local.private_key}"
     agent = "${local.agent}"
    }
@@ -199,7 +199,7 @@ resource "azurerm_virtual_machine" "agent" {
 }
 
 # Create DCOS Mesos Agent Scripts to execute
-module "azure-dcos-mesos-agent" {
+module "azure-dcos-mesos-agent_remote" {
   source               = "github.com/dcos/tf_dcos_core"
   bootstrap_private_ip = "${azurerm_network_interface.bootstrap_nic.private_ip_address}"
   dcos_bootstrap_port  = "${var.custom_dcos_bootstrap_port}"
@@ -210,24 +210,24 @@ module "azure-dcos-mesos-agent" {
   role                 = "dcos-mesos-agent"
 }
 
-resource "null_resource" "agent" {
+resource "null_resource" "agent_remote" {
   # If state is set to none do not install DC/OS
-  count = "${var.state == "none" ? 0 : var.num_of_azure_private_agents}"
+  count = "${var.state == "none" ? 0 : var.num_of_remote_azure_private_agents}"
   # Changes to any instance of the cluster requires re-provisioning
   triggers {
     cluster_instance_ids = "${null_resource.azure-bootstrap.id}"
-    current_virtual_machine_id = "${azurerm_virtual_machine.agent.*.id[count.index]}"
+    current_virtual_machine_id = "${azurerm_virtual_machine.agent_remote.*.id[count.index]}"
   }
   # Bootstrap script can run on any instance of the cluster
   # So we just choose the first in this case
   connection {
-    host = "${element(azurerm_public_ip.agent_public_ip.*.fqdn, count.index)}"
+    host = "${element(azurerm_public_ip.agent_public_ip_remote.*.fqdn, count.index)}"
     user = "${coalesce(var.azure_admin_username, module.azure-tested-oses.user)}"
     private_key = "${local.private_key}"
     agent = "${local.agent}"
   }
 
-  count = "${var.num_of_azure_private_agents}"
+  count = "${var.num_of_remote_azure_private_agents}"
 
   # Generate and upload Agent script to node
   provisioner "file" {
@@ -260,6 +260,6 @@ resource "null_resource" "agent" {
   }
 }
 
-output "Private Agent Public IPs" {
-  value = ["${azurerm_public_ip.agent_public_ip.*.fqdn}"]
+output "Azure Remore Private Agent Public IPs" {
+  value = ["${azurerm_public_ip.agent_public_ip_remote.*.fqdn}"]
 }

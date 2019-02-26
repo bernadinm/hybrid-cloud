@@ -58,6 +58,11 @@ variable "azure_region" {
   default     = "West US"
 }
 
+variable "cisco_azure_instance_type" {
+  description = "Size of the Azure Cisco Router"
+  default     = "Standard_A4m_v2"
+}
+
 variable "vpc_id" {
   description = "Existing VPC to install Cisco CSR on"
   default     = ""

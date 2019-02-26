@@ -32,4 +32,6 @@ sudo yum install -y ntp
 sudo systemctl enable ntpd
 sudo systemctl start ntpd
 sudo getent group nogroup || sudo groupadd nogroup
+
+sudo ip link set dev eth0 mtu 1500 # setting MTU for hybrid-cloud
 sudo touch /opt/dcos-prereqs.installed

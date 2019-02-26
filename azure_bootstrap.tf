@@ -41,7 +41,7 @@ resource "azurerm_network_security_rule" "bootstrap-sshRule" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -56,7 +56,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpRule" {
     priority                    = 110
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "80"
     source_address_prefix       = "*"
@@ -70,7 +70,7 @@ resource "azurerm_network_security_rule" "bootstrap-httpsRule" {
     priority                    = 120
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "443"
     source_address_prefix       = "*"
@@ -84,7 +84,7 @@ resource "azurerm_network_security_rule" "bootstrap-internalEverything" {
     priority                    = 160
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "VirtualNetwork"
@@ -98,7 +98,7 @@ resource "azurerm_network_security_rule" "bootstrap-everythingElseOutBound" {
     priority                    = 170
     direction                   = "Outbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "*"
     source_address_prefix       = "*"
@@ -288,6 +288,7 @@ resource "azurerm_virtual_machine" "bootstrap" {
     dcos_superuser_username = "${var.dcos_superuser_username}"
     dcos_telemetry_enabled = "${var.dcos_telemetry_enabled}"
     dcos_use_proxy = "${var.dcos_use_proxy}"
+    dcos_dns_forward_zones = "${var.dcos_dns_forward_zones}"
     dcos_zk_agent_credentials = "${var.dcos_zk_agent_credentials}"
     dcos_zk_master_credentials = "${var.dcos_zk_master_credentials}"
     dcos_zk_super_credentials = "${var.dcos_zk_super_credentials}"
@@ -369,6 +370,7 @@ resource "null_resource" "azure-bootstrap" {
     dcos_superuser_username = "${var.dcos_superuser_username}"
     dcos_telemetry_enabled = "${var.dcos_telemetry_enabled}"
     dcos_use_proxy = "${var.dcos_use_proxy}"
+    dcos_dns_forward_zones = "${var.dcos_dns_forward_zones}"
     dcos_zk_agent_credentials = "${var.dcos_zk_agent_credentials}"
     dcos_zk_master_credentials = "${var.dcos_zk_master_credentials}"
     dcos_zk_super_credentials = "${var.dcos_zk_super_credentials}"

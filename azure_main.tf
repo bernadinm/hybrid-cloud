@@ -10,7 +10,7 @@ resource "random_id" "cluster" {
 
 # Create a resource group
 resource "azurerm_resource_group" "dcos" {
-  name     = "dcos-${data.template_file.cluster-name.rendered}"
+  name     = "dcos-main-${data.template_file.cluster-name.rendered}"
   location = "${var.azure_region}"
 
   tags { 
@@ -66,7 +66,7 @@ resource "azurerm_network_security_rule" "master-sshRule" {
     priority                    = 100
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "*"
     destination_port_range      = "22"
     source_address_prefix       = "*"
@@ -80,7 +80,7 @@ resource "azurerm_network_security_rule" "public-subnet-httpRule" {
     priority                    = 110
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "80"
     destination_port_range      = "80"
     source_address_prefix       = "*"
@@ -95,7 +95,7 @@ resource "azurerm_network_security_rule" "public-subnet-httpsRule" {
     priority                    = 120
     direction                   = "Inbound"
     access                      = "Allow"
-    protocol                    = "Tcp"
+    protocol                    = "*"
     source_port_range           = "443"
     destination_port_range      = "443"
     source_address_prefix       = "*"
